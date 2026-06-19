@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" font-family="monospace">
+  <defs>
+    <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#23262c"/>
+      <stop offset="1" stop-color="#0c0f14"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#dawn)"/>
+  <rect y="540" width="1200" height="260" fill="#0a0d12"/>
+  <!-- empty lot where the cinema stood: only the blade-sign footing remains -->
+  <rect x="560" y="430" width="46" height="120" fill="#10151c" stroke="#2a3340"/>
+  <text x="583" y="470" fill="#4b5460" font-size="22" text-anchor="middle" transform="rotate(90 583 470)">LUM</text>
+  <!-- rubble pile -->
+  <g fill="#11161e" stroke="#1b212b">
+    <polygon points="300,540 520,470 700,520 860,480 980,540 980,560 300,560"/>
+    <polygon points="360,540 470,500 560,535"/>
+    <polygon points="640,540 760,505 840,540"/>
+  </g>
+  <g fill="#161b24">
+    <rect x="410" y="512" width="60" height="14" transform="rotate(-8 410 512)"/>
+    <rect x="690" y="516" width="80" height="12" transform="rotate(6 690 516)"/>
+    <rect x="540" y="500" width="50" height="12" transform="rotate(-3 540 500)"/>
+  </g>
+  <!-- survey marker -->
+  <g stroke="#7fa8bf" stroke-width="1.5" opacity="0.9">
+    <circle cx="630" cy="512" r="22" fill="none"/>
+    <line x1="630" y1="490" x2="630" y2="534"/>
+    <line x1="608" y1="512" x2="652" y2="512"/>
+  </g>
+  <rect x="0" y="752" width="1200" height="48" fill="#05070b" opacity="0.9"/>
+  <text x="20" y="782" fill="#6f7989" font-size="20" letter-spacing="2">EXHIBIT C // SITE AT DAWN // 14 MAR // FICTIONAL RECONSTRUCTION</text>
+</svg>

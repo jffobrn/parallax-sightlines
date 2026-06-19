@@ -1,0 +1,89 @@
+/*
+ * Parallax design tokens (shared core).
+ *
+ * A deliberately authored, screen-native forensic identity: the situation room,
+ * not a dashboard. Near-black cool neutrals, hairline structure, a single amber
+ * signal reserved for the crossing and for findings, and a red used only for
+ * protection and danger. Monospace carries the apparatus (coordinates,
+ * bearings, timestamps, hashes); the sans carries the voice. These variables are
+ * the suite's palette; later Parallax tools import this file unchanged.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Type */
+  --font-sans: 'Archivo', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Spline Sans Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-arabic: 'Noto Naskh Arabic', 'Archivo', serif;
+
+  /* Neutrals: cool near-black, layered surfaces, hairline lines */
+  --bg: #07090c;
+  --bg-1: #0b0e13;
+  --bg-2: #10141b;
+  --bg-3: #161b24;
+  --bg-4: #1d2430;
+  --line: #1b212b;
+  --line-2: #262f3b;
+  --line-strong: #38424f;
+
+  --text: #e7ebf0;
+  --text-2: #a7b0bd;
+  --text-3: #6f7989;
+  --text-faint: #495160;
+
+  /* Signal: sodium amber. The crossing, findings, the active selection. */
+  --signal: #f3a93c;
+  --signal-bright: #ffc163;
+  --signal-dim: #9a6f2c;
+  --signal-wash: rgba(243, 169, 60, 0.12);
+  --signal-line: rgba(243, 169, 60, 0.42);
+
+  /* Alert / protection: embargo, unsafe coordinates, destructive actions only. */
+  --alert: #e5544b;
+  --alert-bright: #ff7a72;
+  --alert-dim: #97352f;
+  --alert-wash: rgba(229, 84, 75, 0.12);
+
+  /* Map roles, kept low-saturation so amber stays the one loud colour. */
+  --subject: #7fa8bf;
+  --subject-wash: rgba(127, 168, 191, 0.16);
+  --vantage: #d8d2c0;
+  --ray: rgba(216, 210, 192, 0.5);
+
+  /* Geometry */
+  --r-sm: 2px;
+  --r: 3px;
+  --r-lg: 5px;
+
+  --shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  --shadow-pop: 0 16px 50px rgba(0, 0, 0, 0.66);
+
+  /* Spacing scale */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+
+  /* Type scale */
+  --t-micro: 10px;
+  --t-xs: 11px;
+  --t-sm: 12px;
+  --t-base: 13px;
+  --t-md: 14px;
+  --t-lg: 16px;
+  --t-xl: 20px;
+  --t-2xl: 26px;
+
+  --track: 0.08em; /* letter-spacing for mono labels */
+
+  /* Layers */
+  --z-panel: 10;
+  --z-overlay: 50;
+  --z-dialog: 100;
+  --z-toast: 200;
+}

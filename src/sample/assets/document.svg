@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1294" font-family="monospace">
+  <rect width="1000" height="1294" fill="#0c0f14"/>
+  <rect x="70" y="70" width="860" height="1154" fill="#11151c" stroke="#27303c"/>
+  <!-- letterhead -->
+  <text x="110" y="150" fill="#a7b0bd" font-size="26" letter-spacing="3">MUNICIPALITY OF VELA</text>
+  <text x="110" y="182" fill="#6f7989" font-size="18" letter-spacing="2">OFFICE OF PUBLIC WORKS / DEMOLITION PERMITS</text>
+  <line x1="110" y1="210" x2="890" y2="210" stroke="#36414f"/>
+  <text x="890" y="260" fill="#6f7989" font-size="18" text-anchor="end">NOTICE No. VL-0314 (FICTIONAL)</text>
+  <text x="110" y="260" fill="#6f7989" font-size="18">DATED: 10 MARCH 2021</text>
+
+  <text x="110" y="340" fill="#e7ebf0" font-size="24" letter-spacing="1">ORDER FOR THE REMOVAL OF A STRUCTURE</text>
+
+  <g fill="#aab3c0" font-size="19">
+    <text x="110" y="400">Re: former cinema known as "Lumina", 14 Quai des Marais.</text>
+    <text x="110" y="440">The structure is declared unsafe and shall be removed by</text>
+    <text x="110" y="470">the holder of this permit between 13 and 20 March 2021.</text>
+    <text x="110" y="510">Works may proceed outside daylight hours where the site</text>
+    <text x="110" y="540">is secured. Objections are not provided for under this order.</text>
+  </g>
+
+  <!-- faux body lines -->
+  <g stroke="#1b212b" stroke-width="2">
+    <line x1="110" y1="600" x2="890" y2="600"/><line x1="110" y1="636" x2="890" y2="636"/>
+    <line x1="110" y1="672" x2="830" y2="672"/><line x1="110" y1="708" x2="880" y2="708"/>
+    <line x1="110" y1="744" x2="760" y2="744"/>
+  </g>
+
+  <!-- stamp -->
+  <g transform="rotate(-8 760 920)">
+    <rect x="610" y="850" width="300" height="140" fill="none" stroke="#e5544b" stroke-width="3"/>
+    <text x="760" y="905" fill="#e5544b" font-size="26" text-anchor="middle" letter-spacing="2">APPROVED</text>
+    <text x="760" y="945" fill="#97352f" font-size="18" text-anchor="middle">PUBLIC WORKS / VELA</text>
+    <text x="760" y="972" fill="#97352f" font-size="16" text-anchor="middle">10 MAR 2021</text>
+  </g>
+
+  <line x1="110" y1="1120" x2="430" y2="1120" stroke="#36414f"/>
+  <text x="110" y="1150" fill="#6f7989" font-size="16">Authorizing officer (signature withheld)</text>
+  <text x="110" y="1200" fill="#495160" font-size="15" letter-spacing="2">FICTIONAL SAMPLE DOCUMENT // NOT A REAL NOTICE</text>
+</svg>

@@ -1,0 +1,34 @@
+# Changelog
+
+All notable changes to this project are documented here. The format follows
+Keep a Changelog, and the project follows Semantic Versioning.
+
+## [1.0.0] - 2026-06-19
+
+First release. Sightlines, the first tool of the Parallax suite, and the shared
+core the suite reuses.
+
+### Added
+
+- Typed, client-side data model for an incident, its sources, and its findings,
+  persisted in IndexedDB with media held as Blobs.
+- The consent boundary `publicClone`: one function that produces every export and
+  published view, dropping non-public sources, aliasing providers, hiding
+  provenance, withholding unsafe coordinates, and dropping unsupported findings.
+- Resection geometry: crossing vantage sightlines to fix a location, with honest
+  reporting of weak (near-parallel) geometry and crossings behind a camera.
+- Map built on MapLibre and deck.gl with a synthetic forensic graticule basemap
+  that fetches no tiles, plus a registered `pmtiles://` protocol for bundled or
+  self-hosted tiles.
+- A custom visx timeline that shows uncertain time as ranges and is brushed and
+  linked to the map.
+- sha-256 fixity over held bytes via WebCrypto, and an honest archived-snapshot
+  workflow for video links that are never downloaded.
+- A self-contained, interactive published investigation (also a print dossier),
+  the full JSON project file, and project import.
+- An authored forensic visual identity with self-hosted type and per-string
+  direction detection for Arabic (RTL).
+- A plainly fictional sample that opens loaded and exercises the sightline
+  crossing, the honest handling of uncertain time, and the embargo filter.
+
+[1.0.0]: https://example.com/

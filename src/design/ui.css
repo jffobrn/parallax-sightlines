@@ -1,0 +1,690 @@
+/*
+ * Parallax UI layer: authored forensic components. No utility framework, no
+ * default component theme. Every class here is a deliberate decision about the
+ * situation-room look. Shared across the suite.
+ */
+
+/* ---- Apparatus type --------------------------------------------------- */
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'zero' 1;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.label-num {
+  color: var(--text-faint);
+  margin-right: var(--s2);
+}
+
+.dim {
+  color: var(--text-2);
+}
+.faint {
+  color: var(--text-3);
+}
+.signal {
+  color: var(--signal);
+}
+.alert {
+  color: var(--alert);
+}
+
+/* ---- App shell: the situation room ------------------------------------ */
+
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr 360px;
+  grid-template-rows: 44px 1fr 188px;
+  grid-template-areas:
+    'top    top     top'
+    'rail   stage   inspector'
+    'rail   timeline inspector';
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg);
+}
+
+.topbar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: 0 var(--s4);
+  border-bottom: 1px solid var(--line-2);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.wordmark .suite {
+  color: var(--text-3);
+}
+.wordmark .sep {
+  color: var(--signal);
+  margin: 0 0.5ch;
+}
+
+.topbar-spacer {
+  flex: 1;
+}
+
+.readout {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--text-3);
+  display: flex;
+  gap: var(--s4);
+  align-items: center;
+  white-space: nowrap;
+}
+.readout b {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.rail {
+  grid-area: rail;
+  border-right: 1px solid var(--line-2);
+  background: var(--bg-1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage {
+  grid-area: stage;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.inspector {
+  grid-area: inspector;
+  border-left: 1px solid var(--line-2);
+  background: var(--bg-1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-dock {
+  grid-area: timeline;
+  border-top: 1px solid var(--line-2);
+  background: var(--bg-1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- Panel: registration-mark chrome ---------------------------------- */
+
+.panel {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3) var(--s4) var(--s2);
+}
+.panel-head .label {
+  flex: 1;
+}
+.panel-body {
+  padding: 0 var(--s4) var(--s4);
+}
+
+/* corner registration ticks on the stage and dialog */
+.ticks::before,
+.ticks::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+  z-index: 2;
+}
+.ticks::before {
+  top: 8px;
+  left: 8px;
+  border-top: 1px solid var(--line-strong);
+  border-left: 1px solid var(--line-strong);
+}
+.ticks::after {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 1px solid var(--line-strong);
+  border-right: 1px solid var(--line-strong);
+}
+
+/* ---- Buttons ---------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  height: 30px;
+  padding: 0 var(--s3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--bg-3);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.btn:hover {
+  background: var(--bg-4);
+  border-color: var(--text-faint);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--signal-wash);
+  border-color: var(--signal-line);
+  color: var(--signal-bright);
+}
+.btn-primary:hover {
+  background: rgba(243, 169, 60, 0.2);
+  border-color: var(--signal);
+}
+
+.btn-danger:hover {
+  background: var(--alert-wash);
+  border-color: var(--alert-dim);
+  color: var(--alert-bright);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line-2);
+  color: var(--text-2);
+}
+.btn-ghost:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.btn-sm {
+  height: 24px;
+  padding: 0 var(--s2);
+  font-size: var(--t-xs);
+}
+
+.btn-mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.btn-row {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+/* ---- Fields and inputs ------------------------------------------------ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: var(--s3);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2);
+}
+
+.input,
+.textarea,
+.select-trigger {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  color: var(--text);
+  padding: 7px var(--s2);
+  font-size: var(--t-sm);
+  transition: border-color 0.12s, background 0.12s;
+}
+.input:hover,
+.textarea:hover,
+.select-trigger:hover {
+  border-color: var(--line-strong);
+}
+.input:focus-visible,
+.textarea:focus-visible,
+.select-trigger:focus-visible {
+  border-color: var(--signal);
+  outline: none;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-faint);
+}
+.textarea {
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.45;
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+}
+
+/* Radix Select trigger / content */
+.select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  cursor: pointer;
+  text-align: left;
+}
+.select-trigger[data-placeholder] {
+  color: var(--text-faint);
+}
+.select-content {
+  background: var(--bg-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-pop);
+  padding: var(--s1);
+  z-index: var(--z-dialog);
+  max-height: 280px;
+}
+.select-item {
+  font-size: var(--t-sm);
+  padding: 6px var(--s3) 6px var(--s2);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+.select-item[data-highlighted] {
+  background: var(--bg-4);
+  color: var(--text);
+}
+.select-item[data-state='checked'] {
+  color: var(--signal-bright);
+}
+
+/* Segmented control for short enums (precision, certainty, consent) */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.seg button {
+  padding: 5px var(--s2);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-right: 1px solid var(--line-2);
+  transition: background 0.12s, color 0.12s;
+}
+.seg button:last-child {
+  border-right: none;
+}
+.seg button:hover {
+  color: var(--text);
+  background: var(--bg-3);
+}
+.seg button[aria-pressed='true'] {
+  color: var(--signal-bright);
+  background: var(--signal-wash);
+}
+
+/* Switch (safe-to-publish, etc.) */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  cursor: pointer;
+  user-select: none;
+}
+.switch-track {
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--bg-4);
+  border: 1px solid var(--line-strong);
+  position: relative;
+  transition: background 0.12s, border-color 0.12s;
+  flex: none;
+}
+.switch-thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-3);
+  transition: transform 0.12s, background 0.12s;
+}
+.switch[data-on='true'] .switch-track {
+  background: var(--signal-wash);
+  border-color: var(--signal-line);
+}
+.switch[data-on='true'] .switch-thumb {
+  transform: translateX(16px);
+  background: var(--signal-bright);
+}
+
+/* ---- Chips, badges, tags --------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.badge-public {
+  color: var(--text-2);
+  border-color: var(--line-strong);
+}
+.badge-restricted {
+  color: var(--signal);
+  border-color: var(--signal-line);
+  background: var(--signal-wash);
+}
+.badge-embargoed {
+  color: var(--alert-bright);
+  border-color: var(--alert-dim);
+  background: var(--alert-wash);
+}
+
+.badge-attested {
+  color: var(--signal-bright);
+  border-color: var(--signal-line);
+}
+.badge-probable {
+  color: var(--text-2);
+}
+.badge-uncertain {
+  color: var(--text-3);
+  border-style: dashed;
+}
+
+.tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  font-size: var(--t-xs);
+  color: var(--text-2);
+  background: var(--bg-2);
+}
+
+.kind-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 1px;
+  background: var(--text-3);
+  transform: rotate(45deg);
+}
+
+/* ---- Key / value readouts -------------------------------------------- */
+
+.kv {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 2px var(--s2);
+  align-items: baseline;
+}
+.kv dt {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding-top: 1px;
+}
+.kv dd {
+  font-size: var(--t-sm);
+  color: var(--text);
+  word-break: break-word;
+}
+.kv dd.mono {
+  font-size: var(--t-xs);
+  color: var(--text-2);
+}
+
+.hash {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--text-3);
+  word-break: break-all;
+}
+
+/* ---- List rows (sources, findings) ----------------------------------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  gap: var(--s2);
+  align-items: flex-start;
+  padding: var(--s2) var(--s4);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.row:hover {
+  background: var(--bg-2);
+}
+.row[data-selected='true'] {
+  background: var(--signal-wash);
+  border-left-color: var(--signal);
+}
+.row[data-hovered='true'] {
+  background: var(--bg-3);
+}
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+.row-title {
+  font-size: var(--t-sm);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.row-sub {
+  display: flex;
+  gap: var(--s2);
+  align-items: center;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--text-3);
+}
+
+/* ---- Boxes / notes ---------------------------------------------------- */
+
+.note-box {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: var(--s2) var(--s3);
+  font-size: var(--t-sm);
+  color: var(--text-2);
+  background: var(--bg-2);
+}
+
+.warn {
+  border: 1px solid var(--alert-dim);
+  background: var(--alert-wash);
+  border-radius: var(--r);
+  padding: var(--s2) var(--s3);
+  font-size: var(--t-sm);
+  color: var(--alert-bright);
+}
+.note {
+  border: 1px solid var(--signal-line);
+  background: var(--signal-wash);
+  border-radius: var(--r);
+  padding: var(--s2) var(--s3);
+  font-size: var(--t-sm);
+  color: var(--signal-bright);
+}
+
+.empty {
+  padding: var(--s5) var(--s4);
+  text-align: center;
+  color: var(--text-3);
+  font-size: var(--t-sm);
+}
+
+.prose {
+  font-size: var(--t-md);
+  line-height: 1.6;
+  color: var(--text);
+}
+
+/* ---- Dialog (Radix) --------------------------------------------------- */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 5, 8, 0.72);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-dialog);
+}
+.dialog-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: var(--bg-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+  z-index: var(--z-dialog);
+  padding: var(--s5);
+}
+.dialog-title {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--s2);
+}
+.dialog-desc {
+  color: var(--text-2);
+  font-size: var(--t-sm);
+  margin-bottom: var(--s4);
+}
+.dialog-close {
+  position: absolute;
+  top: var(--s3);
+  right: var(--s3);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r);
+  color: var(--text-3);
+  display: grid;
+  place-items: center;
+}
+.dialog-close:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+/* ---- Tooltip (Radix) -------------------------------------------------- */
+
+.tooltip {
+  background: var(--bg-4);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font-size: var(--t-xs);
+  padding: 5px var(--s2);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  max-width: 280px;
+  z-index: var(--z-toast);
+  line-height: 1.45;
+}
+
+/* ---- Misc layout helpers --------------------------------------------- */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+.scroll-y {
+  overflow-y: auto;
+  min-height: 0;
+}
+.grow {
+  flex: 1;
+  min-height: 0;
+}
+.divider {
+  height: 1px;
+  background: var(--line);
+  margin: var(--s3) 0;
+}
+.muted-link {
+  color: var(--text-3);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.muted-link:hover {
+  color: var(--text);
+}

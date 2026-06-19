@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Sightlines"
+abstract: >-
+  A client-side, local-first tool to reconstruct a single incident or site in
+  time and space, consent first: gather dated, hashed sources; place each
+  photograph's subject and camera vantage on a map; cross the sightlines to
+  resect a location; order everything on a linked timeline; state findings
+  tethered to their sources; and publish a consent-cleared interactive
+  investigation. The first tool of the Parallax suite.
+type: software
+authors:
+  - family-names: "O'Brien"
+    given-names: "Jeff"
+    affiliation: "Material / Image Research Lab (MIRL), University of California, Santa Barbara"
+version: "1.0.0"
+date-released: "2026-06-19"
+license: MIT
+keywords:
+  - open-source investigation
+  - counter-forensics
+  - geolocation
+  - resection
+  - consent
+  - data sovereignty
+  - art history
+  - archives
+  - digital humanities
