@@ -10,12 +10,15 @@ abstract: >-
   investigation. The first tool of the Parallax suite.
 type: software
 authors:
+  - name: "Parallax Agency"
   - family-names: "O'Brien"
     given-names: "Jeff"
     affiliation: "Material / Image Research Lab (MIRL), University of California, Santa Barbara"
-version: "1.0.0"
-date-released: "2026-06-19"
-license: MIT
+version: "1.1.0"
+date-released: "2026-06-20"
+license:
+  - PolyForm-Noncommercial-1.0.0
+  - CC-BY-NC-SA-4.0
 keywords:
   - open-source investigation
   - counter-forensics
