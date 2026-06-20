@@ -133,7 +133,7 @@ consent ethic: **Atlas** (the image complex as a navigable space),
 source-criticism workbench for teaching). Sightlines is built first because it
 establishes the shared core.
 
-## License and citation
+## License
 
 Source-available, not open source. The source code is under the
 [PolyForm Noncommercial License 1.0.0](LICENSE); the non-code assets (the design,
@@ -141,8 +141,9 @@ this documentation, the bundled sample, and the investigations the tool produces
 are under [CC BY-NC-SA 4.0](LICENSE-ASSETS.md). Free to use, modify, and share for
 any noncommercial purpose, including education, research, nonprofits, and
 government. Commercial use is not granted here; contact the authors for commercial
-licensing. If you use Sightlines in your work, please cite it using
-[CITATION.cff](CITATION.cff).
+licensing.
+
+Parallax publishes these instruments for verifiability, not as products to adopt.
 
 ## Author
 
