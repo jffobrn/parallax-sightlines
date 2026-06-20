@@ -133,12 +133,4 @@ consent ethic: **Atlas** (the image complex as a navigable space),
 source-criticism workbench for teaching). Sightlines is built first because it
 establishes the shared core.
 
-## License and citation
 
-MIT, see [LICENSE](LICENSE). If you use Sightlines in your work, please cite it
-using [CITATION.cff](CITATION.cff).
-
-## Author
-
-Jeff O'Brien, Curator, Material / Image Research Lab (MIRL), Department of History
-of Art and Architecture, University of California, Santa Barbara.
