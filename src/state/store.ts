@@ -42,6 +42,7 @@ export interface AppState {
   // lifecycle
   init: () => Promise<void>
   resetToSample: () => Promise<void>
+  newBlankProject: () => Promise<void>
   adoptProject: (project: Project) => void
 
   // incident
@@ -79,6 +80,14 @@ function schedulePersist(project: Project) {
   }, 400)
 }
 
+/** Cancel a pending debounced save so it cannot clobber a direct write. */
+function cancelPersist() {
+  if (persistTimer) {
+    clearTimeout(persistTimer)
+    persistTimer = null
+  }
+}
+
 export const useStore = create<AppState>()((set, get) => {
   /** Apply a project mutation and queue a save. */
   const commit = (project: Project) => {
@@ -87,7 +96,7 @@ export const useStore = create<AppState>()((set, get) => {
   }
 
   return {
-    project: { incident: blankIncident(), sources: [], findings: [] },
+    project: blankProject(),
     ready: false,
 
     selectedSourceId: null,
@@ -110,11 +119,31 @@ export const useStore = create<AppState>()((set, get) => {
     },
 
     async resetToSample() {
+      // A debounced save from a just-prior edit would otherwise fire after this
+      // and restore the old project, so cancel it before writing the sample.
+      cancelPersist()
       await clearProject()
       const sample = await buildSampleProject()
       await saveProject(sample)
       set({
         project: sample,
+        selectedSourceId: null,
+        selectedFindingId: null,
+        editingSourceId: null,
+        timeBrush: null,
+        placing: null,
+      })
+    },
+
+    async newBlankProject() {
+      // Start an empty investigation (no sources or findings), discarding the
+      // sample. Cancel any pending debounced save so it cannot restore it.
+      cancelPersist()
+      await clearProject()
+      const project = blankProject()
+      await saveProject(project)
+      set({
+        project,
         selectedSourceId: null,
         selectedFindingId: null,
         editingSourceId: null,
@@ -272,4 +301,8 @@ function blankIncident(): Incident {
     window: { precision: 'day' },
     tags: [],
   }
+}
+
+function blankProject(): Project {
+  return { incident: blankIncident(), sources: [], findings: [] }
 }

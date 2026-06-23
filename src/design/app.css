@@ -1,5 +1,24 @@
 /* View-specific styles for Sightlines, layered on the shared design system. */
 
+/* ---- Topbar overflow guard ------------------------------------------- */
+/* At narrow widths the topbar must stay on its single 44px row. The shared
+   `.btn-row` wraps by default; in the topbar that let the action buttons
+   collapse into a vertical stack that spilled below the bar, where the rail's
+   card painted over them and swallowed clicks (the Reset button's failure
+   mode). Keep the action buttons on one line and never shrinking; let the
+   readout yield and clip first, and clip any remaining overflow at the bar. */
+.topbar {
+  overflow: hidden;
+}
+.topbar .btn-row {
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+}
+.topbar .readout {
+  min-width: 0;
+  overflow: hidden;
+}
+
 /* ---- Boot ------------------------------------------------------------- */
 .boot {
   height: 100vh;

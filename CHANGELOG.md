@@ -3,6 +3,24 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.2.0] - 2026-06-23
+
+### Added
+
+- A New action that starts an empty investigation, alongside Reset. Both now
+  confirm in two steps in the toolbar rather than through a browser dialog, so
+  the action still works (and reports its outcome) in installed PWAs, which
+  suppress window.confirm.
+
+### Fixed
+
+- The toolbar no longer overflows its single row at narrow window widths. The
+  action buttons previously wrapped into a vertical stack that spilled beneath
+  the bar, where the rail card painted over them and swallowed clicks, so Reset
+  and the other actions silently did nothing. They are now held on one row.
+- Resetting to the sample immediately after an edit could be undone by a pending
+  debounced save; that save is now cancelled before the reset writes.
+
 ## [1.1.2] - 2026-06-22
 
 ### Added
