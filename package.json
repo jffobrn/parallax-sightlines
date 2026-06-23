@@ -1,7 +1,7 @@
 {
   "name": "sightlines",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "Reconstruct a single incident or site in time and space, consent first. The first tool of the Parallax suite.",
   "license": "SEE LICENSE IN LICENSE",

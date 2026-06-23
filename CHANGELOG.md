@@ -3,6 +3,18 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.1.1] - 2026-06-22
+
+### Changed
+
+- README rebalanced to lead with the counter-forensic method.
+- Removed CITATION.cff and the README citation pointers; the tool is published for
+  verifiability as part of Parallax, not as a product to cite.
+
+### Added
+
+- Deposited to Zenodo for a citable, versioned archival snapshot.
+
 ## [1.1.0] - 2026-06-20
 
 ### Changed
