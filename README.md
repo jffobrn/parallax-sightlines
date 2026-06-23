@@ -130,7 +130,7 @@ Sightlines is built first because it establishes the shared core.
 Source-available, not open source. The source code is under the
 [PolyForm Noncommercial License 1.0.0](LICENSE); the non-code assets (the design,
 this documentation, the bundled sample, and the investigations the tool produces)
-are under [CC BY-NC-SA 4.0](LICENSE-ASSETS.md). Free to use, modify, and share for
+are under [CC BY-NC-SA 4.0](ASSETS-LICENSE.md). Free to use, modify, and share for
 any noncommercial purpose, including education, research, nonprofits, and
 government. Commercial use is not granted here; contact the authors for commercial
 licensing.
