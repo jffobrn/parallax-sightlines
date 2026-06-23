@@ -1,5 +1,7 @@
 # Sightlines
 
+> **Researcher's guide:** [docs/GUIDE.md](docs/GUIDE.md) walks through every view, control, and the consent boundary in full, with screenshots.
+
 Reconstruct a single incident or site in time and space from scattered sources.
 
 Sightlines is the first tool of **Parallax**, a client-side, local-first suite
