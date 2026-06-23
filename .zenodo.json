@@ -1,0 +1,21 @@
+{
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "cc-by-nc-sa-4.0",
+  "title": "Sightlines: reconstruct a single incident or site in time and space, consent first",
+  "description": "The first tool of the Parallax suite, a counter-forensic toolkit for art history and the archive. Gathers dated, hashed sources; places each photograph's subject and camera vantage on a map; crosses the sightlines to resect a location; orders everything on a linked timeline; states findings tethered to their sources; and publishes a consent-cleared interactive investigation through a single boundary. Establishes the shared core the suite reuses. Source-available and published for verifiability, not as a product to adopt. Source code is licensed under the PolyForm Noncommercial License 1.0.0; the non-code assets under CC BY-NC-SA 4.0.",
+  "creators": [
+    { "name": "Parallax Agency" },
+    { "name": "O'Brien, Jeff", "affiliation": "Material / Image Research Lab (MIRL), University of California, Santa Barbara" }
+  ],
+  "keywords": [
+    "open-source investigation",
+    "counter-forensics",
+    "geolocation",
+    "resection",
+    "art history",
+    "archives",
+    "data sovereignty"
+  ],
+  "notes": "Source code: PolyForm Noncommercial License 1.0.0. Non-code assets: CC BY-NC-SA 4.0. Source-available, not open source; commercial use is not granted."
+}

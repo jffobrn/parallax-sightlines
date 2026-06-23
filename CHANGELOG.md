@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.1.2] - 2026-06-22
+
+### Added
+
+- `.zenodo.json` so the Zenodo deposit records the correct creators (Parallax
+  Agency and Jeff O'Brien) and the noncommercial licence. The auto-filled v1.1.1
+  deposit defaulted to CC BY 4.0 because GitHub cannot detect the PolyForm licence.
+
 ## [1.1.1] - 2026-06-22
 
 ### Changed
