@@ -5,7 +5,7 @@ import {
   type Source,
 } from '../core'
 import { useStore } from '../state/store'
-import { CertaintyBadge, ConsentBadge, Dir, KindBadge } from '../components/ui'
+import { CertaintyBadge, ConsentBadge, Dir, KindBadge, rowButton } from '../components/ui'
 
 export function Rail() {
   const project = useStore((s) => s.project)
@@ -81,7 +81,7 @@ export function Rail() {
               className="row"
               data-selected={s.id === selectedSourceId}
               data-hovered={s.id === hoveredId && s.id !== selectedSourceId}
-              onClick={() => select(s.id)}
+              {...rowButton(() => select(s.id))}
               onMouseEnter={() => hover(s.id)}
               onMouseLeave={() => hover(null)}
             >
@@ -115,7 +115,7 @@ export function Rail() {
               className="row"
               data-selected={f.id === selectedFindingId}
               data-hovered={f.id === hoveredId && f.id !== selectedFindingId}
-              onClick={() => selectFinding(f.id)}
+              {...rowButton(() => selectFinding(f.id))}
               onMouseEnter={() => hover(f.id)}
               onMouseLeave={() => hover(null)}
             >

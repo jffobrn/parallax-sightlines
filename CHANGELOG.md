@@ -3,6 +3,19 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.2.1] - 2026-06-23
+
+### Added
+
+- The source and finding rows in the rail are keyboard accessible: each is now a
+  focusable button that activates on Enter or Space, with the standard focus
+  ring, so the investigation can be navigated without a mouse.
+
+### Fixed
+
+- Readout counts read in the singular when there is one (1 source, not
+  1 sources).
+
 ## [1.2.0] - 2026-06-23
 
 ### Added
