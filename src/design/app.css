@@ -219,6 +219,59 @@
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
   filter: invert(0.85);
 }
+.maplibregl-ctrl-attrib {
+  background: rgba(11, 14, 19, 0.72) !important;
+}
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib a {
+  color: var(--text-3) !important;
+  font-size: var(--t-micro);
+}
+
+/* ---- Basemap picker -------------------------------------------------- */
+.basemap-picker {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: var(--z-panel);
+  padding: 4px;
+  background: rgba(11, 14, 19, 0.86);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+}
+.basemap-row {
+  display: flex;
+  gap: 2px;
+}
+.basemap-btn {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.basemap-btn:hover {
+  color: var(--text);
+  background: var(--bg-2);
+}
+.basemap-btn[data-active='true'] {
+  color: var(--bg);
+  background: var(--signal);
+  border-color: var(--signal);
+}
+.basemap-note {
+  margin: 4px 2px 1px;
+  max-width: 190px;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  line-height: 1.35;
+  color: var(--text-3);
+}
 
 /* ---- Timeline dock --------------------------------------------------- */
 .timeline-dock {

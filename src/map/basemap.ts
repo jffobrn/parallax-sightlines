@@ -1,52 +1,106 @@
 /**
- * Basemap (shared core for the map). Two safety facts drive this file:
+ * Basemap (shared core for the map). Three facts drive this file:
  *
- *  1. Tiles must never leak the viewport. The default basemap is a synthetic
- *     forensic graticule that fetches nothing at all: no tile server, no glyph
- *     server, no sprite. A sensitive area of interest cannot reach an outside
- *     server because no request is ever made.
+ *  1. A real basemap is available and is the default, because placing a vantage
+ *     against a blank grid is not a workflow. Satellite imagery (Esri) and street
+ *     tiles (OpenStreetMap) are offered, tokenless.
  *
- *  2. Real tiles, when wanted, come from a bundled or self-hosted PMTiles
- *     archive over the `pmtiles://` protocol, never a third-party service. The
- *     protocol is registered here; point `makeBasemapStyle` at a local archive
- *     to use it. (The sample uses invented coordinates, so it ships with the
- *     synthetic basemap.)
+ *  2. Fetched tiles reveal the viewport to the tile server. That is disclosed in
+ *     the UI, it affects only the editing view, never a published artifact (the
+ *     artifact draws its own static map and fetches nothing), and two private
+ *     modes are one click away: a synthetic graticule that fetches nothing at
+ *     all, and a self-hosted PMTiles file that never leaves the machine.
+ *
+ *  3. The synthetic graticule is drawn over any basemap by deck.gl (see
+ *     graticuleLines) so the coordinate frame follows the view at any zoom.
  */
 
-import maplibregl, { type StyleSpecification } from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
+import maplibregl, {
+  type LayerSpecification,
+  type SourceSpecification,
+  type StyleSpecification,
+} from 'maplibre-gl'
+import { FileSource, PMTiles, Protocol } from 'pmtiles'
 
-let registered = false
+export type BasemapSource = 'satellite' | 'streets' | 'graticule' | 'file'
+
+let protocol: Protocol | null = null
 
 /** Register the pmtiles:// protocol with MapLibre, once. */
 export function registerPmtilesProtocol(): void {
-  if (registered) return
-  const protocol = new Protocol()
+  if (protocol) return
+  protocol = new Protocol()
   maplibregl.addProtocol('pmtiles', protocol.tile)
-  registered = true
+}
+
+/**
+ * Register a user-picked PMTiles file as the 'file' basemap and return its
+ * pmtiles:// key. The file is read locally via range requests; nothing is
+ * uploaded. Throws (surfaced to the caller) if the archive cannot be read.
+ */
+export async function registerBasemapFile(file: File): Promise<string> {
+  registerPmtilesProtocol()
+  const pm = new PMTiles(new FileSource(file))
+  await pm.getHeader() // fail here on a bad file, not mid-render
+  protocol!.add(pm)
+  return pm.source.getKey()
+}
+
+interface RasterDef {
+  tiles: string[]
+  attribution: string
+  maxzoom: number
+}
+
+/** The two online sources. Tokenless; each reveals the viewport to its server. */
+export const BASEMAP_TILES: Record<'satellite' | 'streets', RasterDef> = {
+  satellite: {
+    tiles: [
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    ],
+    attribution:
+      'Imagery: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+    maxzoom: 19,
+  },
+  streets: {
+    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+    attribution: '&copy; OpenStreetMap contributors',
+    maxzoom: 19,
+  },
 }
 
 export const BG_COLOR = '#07090c'
 
 /**
- * The default style: a single dark background and no sources. The grid is drawn
- * over the top by deck.gl (see graticuleLines) so it can follow any view at any
- * zoom without tiles.
+ * The style for a chosen basemap: a dark background always, a raster basemap
+ * layer for satellite / streets / a loaded PMTiles file, and nothing fetched for
+ * the graticule. The grid and all points are drawn over the top by deck.gl.
  */
-export function makeBasemapStyle(): StyleSpecification {
-  return {
-    version: 8,
-    name: 'parallax-forensic',
-    // No glyphs and no sprite: nothing is fetched from anywhere.
-    sources: {},
-    layers: [
-      {
-        id: 'background',
-        type: 'background',
-        paint: { 'background-color': BG_COLOR },
-      },
-    ],
+export function makeBasemapStyle(
+  source: BasemapSource,
+  fileKey?: string,
+): StyleSpecification {
+  const sources: Record<string, SourceSpecification> = {}
+  const layers: LayerSpecification[] = [
+    { id: 'background', type: 'background', paint: { 'background-color': BG_COLOR } },
+  ]
+
+  if (source === 'satellite' || source === 'streets') {
+    const def = BASEMAP_TILES[source]
+    sources.basemap = {
+      type: 'raster',
+      tiles: def.tiles,
+      tileSize: 256,
+      attribution: def.attribution,
+      maxzoom: def.maxzoom,
+    }
+    layers.push({ id: 'basemap', type: 'raster', source: 'basemap' })
+  } else if (source === 'file' && fileKey) {
+    sources.basemap = { type: 'raster', url: 'pmtiles://' + fileKey, tileSize: 256 }
+    layers.push({ id: 'basemap', type: 'raster', source: 'basemap' })
   }
+
+  return { version: 8, name: 'parallax-forensic', sources, layers }
 }
 
 export interface Bounds {
