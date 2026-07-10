@@ -50,9 +50,10 @@ export function AboutDialog({
 
             <p className="faint" style={{ marginTop: 12, fontSize: 12 }}>
               Runs entirely in your browser. The project and its media stay on
-              your machine in local storage; nothing is uploaded. The basemap is a
-              synthetic graticule that fetches no tiles, so a sensitive area of
-              interest never reaches an outside server. The bundled sample is
+              your machine in local storage; nothing is uploaded. Online basemaps
+              are retrieved for the working view; a published artifact draws its own
+              static map and fetches nothing, and an offline grid and a local file
+              basemap are a click away for sensitive ground. The bundled sample is
               plainly fictional.
             </p>
           </div>

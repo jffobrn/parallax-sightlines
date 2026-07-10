@@ -1,15 +1,18 @@
 /**
- * Basemap (shared core for the map). Three facts drive this file:
+ * Basemap (shared core for the map).
  *
- *  1. A real basemap is available and is the default, because placing a vantage
- *     against a blank grid is not a workflow. Satellite imagery (Esri) and street
- *     tiles (OpenStreetMap) are offered, tokenless.
+ *  1. A real basemap is the default: placing a vantage against a blank grid is
+ *     not a workflow. Tokenless online sources are offered (Esri satellite and
+ *     topographic, OpenStreetMap streets), with dated historical imagery from the
+ *     Esri Wayback archive and an optional place-label overlay. Search resolves a
+ *     place name or a typed coordinate (see geocode.ts).
  *
- *  2. Fetched tiles reveal the viewport to the tile server. That is disclosed in
- *     the UI, it affects only the editing view, never a published artifact (the
- *     artifact draws its own static map and fetches nothing), and two private
- *     modes are one click away: a synthetic graticule that fetches nothing at
- *     all, and a self-hosted PMTiles file that never leaves the machine.
+ *  2. These are operator-facing research instruments. Online retrieval is a
+ *     working convenience and carries no disclosure on the way out: a published
+ *     artifact draws its own static map and fetches nothing, and two offline
+ *     modes stay one click away for work over sensitive ground: a synthetic
+ *     graticule that fetches nothing at all, and a self-hosted PMTiles file that
+ *     never leaves the machine.
  *
  *  3. The synthetic graticule is drawn over any basemap by deck.gl (see
  *     graticuleLines) so the coordinate frame follows the view at any zoom.
@@ -22,7 +25,7 @@ import maplibregl, {
 } from 'maplibre-gl'
 import { FileSource, PMTiles, Protocol } from 'pmtiles'
 
-export type BasemapSource = 'satellite' | 'streets' | 'graticule' | 'file'
+export type BasemapSource = 'satellite' | 'streets' | 'topo' | 'graticule' | 'file'
 
 let protocol: Protocol | null = null
 
@@ -52,8 +55,8 @@ interface RasterDef {
   maxzoom: number
 }
 
-/** The two online sources. Tokenless; each reveals the viewport to its server. */
-export const BASEMAP_TILES: Record<'satellite' | 'streets', RasterDef> = {
+/** The online raster bases. Tokenless. */
+export const BASEMAP_TILES: Record<'satellite' | 'streets' | 'topo', RasterDef> = {
   satellite: {
     tiles: [
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -67,37 +70,121 @@ export const BASEMAP_TILES: Record<'satellite' | 'streets', RasterDef> = {
     attribution: '&copy; OpenStreetMap contributors',
     maxzoom: 19,
   },
+  topo: {
+    tiles: [
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    ],
+    attribution: 'Esri, HERE, Garmin, USGS, and the GIS User Community',
+    maxzoom: 19,
+  },
+}
+
+/** Transparent place-name and boundary overlay, drawn over any raster base. */
+const LABELS_TILES: RasterDef = {
+  tiles: [
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+  ],
+  attribution: 'Labels: Esri',
+  maxzoom: 19,
 }
 
 export const BG_COLOR = '#07090c'
 
+/** A dated release of the Esri Wayback World Imagery archive. */
+export interface WaybackRelease {
+  release: number
+  date: string
+  url: string
+}
+
+const WAYBACK_CONFIG_URL =
+  'https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json'
+
+let waybackCache: WaybackRelease[] | null = null
+
+/**
+ * Fetch the list of dated Wayback imagery releases, newest first. Tokenless;
+ * memoised for the session. Each release carries a ready-to-use XYZ tile
+ * template. Throws on a network or parse failure so the caller can degrade to
+ * live imagery only.
+ */
+export async function fetchWaybackReleases(): Promise<WaybackRelease[]> {
+  if (waybackCache) return waybackCache
+  const res = await fetch(WAYBACK_CONFIG_URL)
+  if (!res.ok) throw new Error('wayback config ' + res.status)
+  const cfg = (await res.json()) as Record<
+    string,
+    { itemTitle?: string; itemURL?: string }
+  >
+  const out: WaybackRelease[] = []
+  for (const [key, v] of Object.entries(cfg)) {
+    const m = v.itemTitle?.match(/(\d{4}-\d{2}-\d{2})/)
+    if (!v.itemURL || !m) continue
+    out.push({
+      release: Number(key),
+      date: m[1],
+      url: v.itemURL
+        .replace(/\{level\}/i, '{z}')
+        .replace(/\{row\}/i, '{y}')
+        .replace(/\{col\}/i, '{x}'),
+    })
+  }
+  out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  waybackCache = out
+  return out
+}
+
+/** Options that modify a basemap style without changing the primary source. */
+export interface BasemapOpts {
+  /** pmtiles:// key for the 'file' source. */
+  fileKey?: string
+  /** Overlay place-name and boundary labels on top of the raster base. */
+  labels?: boolean
+  /** Override the satellite tiles with a Wayback release template. */
+  satelliteUrl?: string
+}
+
 /**
  * The style for a chosen basemap: a dark background always, a raster basemap
- * layer for satellite / streets / a loaded PMTiles file, and nothing fetched for
- * the graticule. The grid and all points are drawn over the top by deck.gl.
+ * layer for satellite / streets / topo / a loaded PMTiles file, an optional
+ * label overlay, and nothing fetched for the graticule. The grid and all points
+ * are drawn over the top by deck.gl.
  */
 export function makeBasemapStyle(
   source: BasemapSource,
-  fileKey?: string,
+  opts: BasemapOpts = {},
 ): StyleSpecification {
   const sources: Record<string, SourceSpecification> = {}
   const layers: LayerSpecification[] = [
     { id: 'background', type: 'background', paint: { 'background-color': BG_COLOR } },
   ]
 
-  if (source === 'satellite' || source === 'streets') {
+  if (source === 'satellite' || source === 'streets' || source === 'topo') {
     const def = BASEMAP_TILES[source]
+    const tiles =
+      source === 'satellite' && opts.satelliteUrl ? [opts.satelliteUrl] : def.tiles
     sources.basemap = {
       type: 'raster',
-      tiles: def.tiles,
+      tiles,
       tileSize: 256,
       attribution: def.attribution,
       maxzoom: def.maxzoom,
     }
     layers.push({ id: 'basemap', type: 'raster', source: 'basemap' })
-  } else if (source === 'file' && fileKey) {
-    sources.basemap = { type: 'raster', url: 'pmtiles://' + fileKey, tileSize: 256 }
+  } else if (source === 'file' && opts.fileKey) {
+    sources.basemap = { type: 'raster', url: 'pmtiles://' + opts.fileKey, tileSize: 256 }
     layers.push({ id: 'basemap', type: 'raster', source: 'basemap' })
+  }
+
+  if (opts.labels && source !== 'graticule') {
+    sources.labels = {
+      type: 'raster',
+      tiles: LABELS_TILES.tiles,
+      tileSize: 256,
+      attribution: LABELS_TILES.attribution,
+      maxzoom: LABELS_TILES.maxzoom,
+    }
+    layers.push({ id: 'labels', type: 'raster', source: 'labels' })
   }
 
   return { version: 8, name: 'parallax-forensic', sources, layers }

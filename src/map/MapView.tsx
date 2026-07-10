@@ -7,21 +7,30 @@ import { getResection } from '../lib/derive'
 import type { Project } from '../core'
 import { buildMapLayers } from './layers'
 import {
+  type BasemapOpts,
+  type BasemapSource,
+  type Bounds,
+  fetchWaybackReleases,
   graticuleLines,
   makeBasemapStyle,
   registerBasemapFile,
   registerPmtilesProtocol,
-  type BasemapSource,
-  type Bounds,
+  type WaybackRelease,
 } from './basemap'
+import { geocodePlace, type GeoResult, parseCoordinate } from './geocode'
 import { CrossingCard } from './CrossingCard'
 
 const BASEMAP_KEY = 'sightlines.basemap'
+const LABELS_KEY = 'sightlines.labels'
 
 /** Persisted default. 'file' is a per-session choice and is never persisted. */
 function loadBasemapPref(): BasemapSource {
   const v = typeof localStorage !== 'undefined' ? localStorage.getItem(BASEMAP_KEY) : null
-  return v === 'streets' || v === 'graticule' ? v : 'satellite'
+  return v === 'streets' || v === 'topo' || v === 'graticule' ? v : 'satellite'
+}
+
+function loadLabelsPref(): boolean {
+  return typeof localStorage !== 'undefined' && localStorage.getItem(LABELS_KEY) === '1'
 }
 
 /** Every placed point in the project, as [lng, lat], for fitting the view. */
@@ -44,6 +53,7 @@ export function MapView() {
   const overlayRef = useRef<MapboxOverlay | null>(null)
   const loadedRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const fileKeyRef = useRef<string | undefined>(undefined)
 
   const project = useStore((s) => s.project)
   const selectedSourceId = useStore((s) => s.selectedSourceId)
@@ -52,6 +62,9 @@ export function MapView() {
 
   const resection = useMemo(() => getResection(project), [project])
   const [basemap, setBasemap] = useState<BasemapSource>(loadBasemapPref)
+  const [labels, setLabels] = useState<boolean>(loadLabelsPref)
+  const [waybackDate, setWaybackDate] = useState('')
+  const [releases, setReleases] = useState<WaybackRelease[]>([])
 
   // Keep the latest data for imperative rebuilds (on map move).
   const dataRef = useRef({ project, selectedSourceId, hoveredId, resection })
@@ -102,7 +115,7 @@ export function MapView() {
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: makeBasemapStyle(initial),
+      style: makeBasemapStyle(initial, { labels }),
       center,
       zoom: 16.2,
       attributionControl: false,
@@ -156,12 +169,23 @@ export function MapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Build the style options for the current control state, with overrides so a
+  // handler can apply its own new value before React state has flushed.
+  const buildOpts = (over: { labels?: boolean; date?: string } = {}): BasemapOpts => {
+    const date = over.date ?? waybackDate
+    const opts: BasemapOpts = { labels: over.labels ?? labels }
+    if (fileKeyRef.current) opts.fileKey = fileKeyRef.current
+    const r = releases.find((x) => x.date === date)
+    if (date && r) opts.satelliteUrl = r.url
+    return opts
+  }
+
   // Swap the basemap style; deck layers are re-added once the new style parses.
-  const applyBasemap = (source: BasemapSource, fileKey?: string) => {
+  const applyBasemap = (source: BasemapSource, opts: BasemapOpts) => {
     const map = mapRef.current
     if (!map) return
     loadedRef.current = false
-    map.setStyle(makeBasemapStyle(source, fileKey))
+    map.setStyle(makeBasemapStyle(source, opts))
     map.once('styledata', () => {
       loadedRef.current = true
       rebuild()
@@ -179,7 +203,23 @@ export function MapView() {
     } catch {
       /* storage unavailable; the choice still applies for the session */
     }
-    applyBasemap(source)
+    applyBasemap(source, buildOpts())
+  }
+
+  const toggleLabels = () => {
+    const next = !labels
+    setLabels(next)
+    try {
+      localStorage.setItem(LABELS_KEY, next ? '1' : '0')
+    } catch {
+      /* storage unavailable */
+    }
+    applyBasemap(basemap === 'file' ? 'file' : basemap, buildOpts({ labels: next }))
+  }
+
+  const chooseWayback = (date: string) => {
+    setWaybackDate(date)
+    applyBasemap('satellite', buildOpts({ date }))
   }
 
   const onFilePicked = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -188,14 +228,37 @@ export function MapView() {
     if (!f) return
     try {
       const key = await registerBasemapFile(f)
+      fileKeyRef.current = key
       setBasemap('file')
-      applyBasemap('file', key)
+      applyBasemap('file', buildOpts())
     } catch {
       // Leave the current basemap in place; a bad file changes nothing.
       // eslint-disable-next-line no-console
       console.warn('Could not read that .pmtiles basemap.')
     }
   }
+
+  const gotoPoint = (lat: number, lng: number) => {
+    const map = mapRef.current
+    if (!map) return
+    map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 15), duration: 900 })
+  }
+
+  // Load the Wayback release list the first time satellite is active.
+  useEffect(() => {
+    if (basemap !== 'satellite' || releases.length > 0) return
+    let live = true
+    fetchWaybackReleases()
+      .then((r) => {
+        if (live) setReleases(r)
+      })
+      .catch(() => {
+        /* live imagery only; the date control stays at Live */
+      })
+    return () => {
+      live = false
+    }
+  }, [basemap, releases.length])
 
   // Rebuild layers whenever the data the map draws from changes.
   useEffect(() => {
@@ -237,7 +300,16 @@ export function MapView() {
   return (
     <>
       <div className="map-fill" ref={containerRef} />
-      <BasemapPicker active={basemap} onChoose={chooseBasemap} />
+      <MapControls
+        basemap={basemap}
+        labels={labels}
+        waybackDate={waybackDate}
+        releases={releases}
+        onChoose={chooseBasemap}
+        onToggleLabels={toggleLabels}
+        onChooseWayback={chooseWayback}
+        onGoto={gotoPoint}
+      />
       <input
         ref={fileInputRef}
         type="file"
@@ -252,28 +324,41 @@ export function MapView() {
   )
 }
 
-function BasemapPicker({
-  active,
+function MapControls({
+  basemap,
+  labels,
+  waybackDate,
+  releases,
   onChoose,
+  onToggleLabels,
+  onChooseWayback,
+  onGoto,
 }: {
-  active: BasemapSource
+  basemap: BasemapSource
+  labels: boolean
+  waybackDate: string
+  releases: WaybackRelease[]
   onChoose: (s: BasemapSource) => void
+  onToggleLabels: () => void
+  onChooseWayback: (date: string) => void
+  onGoto: (lat: number, lng: number) => void
 }) {
-  const online = active === 'satellite' || active === 'streets'
   const opts: { id: BasemapSource; label: string; title: string }[] = [
     { id: 'satellite', label: 'Satellite', title: 'Esri World Imagery (tokenless)' },
     { id: 'streets', label: 'Streets', title: 'OpenStreetMap' },
+    { id: 'topo', label: 'Topo', title: 'Esri topographic, with hillshade' },
     { id: 'graticule', label: 'Grid', title: 'Coordinate grid only; nothing is fetched' },
     { id: 'file', label: 'File', title: 'Load a local .pmtiles basemap; nothing is fetched' },
   ]
   return (
     <div className="basemap-picker mono">
+      <MapSearch onGoto={onGoto} />
       <div className="basemap-row">
         {opts.map((o) => (
           <button
             key={o.id}
             className="basemap-btn"
-            data-active={active === o.id}
+            data-active={basemap === o.id}
             title={o.title}
             onClick={() => onChoose(o.id)}
           >
@@ -281,8 +366,82 @@ function BasemapPicker({
           </button>
         ))}
       </div>
-      {online && (
-        <div className="basemap-note">viewport visible to the tile server while you edit</div>
+      <label className="basemap-toggle">
+        <input type="checkbox" checked={labels} onChange={onToggleLabels} />
+        Labels
+      </label>
+      {basemap === 'satellite' && (
+        <div className="basemap-date">
+          <span>Imagery</span>
+          <select value={waybackDate} onChange={(e) => onChooseWayback(e.target.value)}>
+            <option value="">Live</option>
+            {releases.map((r) => (
+              <option key={r.date} value={r.date}>
+                {r.date}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MapSearch({ onGoto }: { onGoto: (lat: number, lng: number) => void }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<GeoResult[] | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const run = async () => {
+    const q = query.trim()
+    if (!q) return
+    const coord = parseCoordinate(q)
+    if (coord) {
+      onGoto(coord.lat, coord.lng)
+      setResults(null)
+      return
+    }
+    setBusy(true)
+    try {
+      const found = await geocodePlace(q)
+      setResults(found)
+    } catch {
+      setResults([])
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const pick = (r: GeoResult) => {
+    onGoto(r.lat, r.lng)
+    setResults(null)
+    setQuery('')
+  }
+
+  return (
+    <div className="map-search">
+      <input
+        className="map-search-input"
+        placeholder="Search place or lat, lng"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') run()
+          else if (e.key === 'Escape') setResults(null)
+        }}
+      />
+      {results !== null && (
+        <div className="map-results">
+          {busy && <div className="map-search-msg">searching…</div>}
+          {!busy && results.length === 0 && (
+            <div className="map-search-msg">no match</div>
+          )}
+          {results.map((r, i) => (
+            <button key={i} className="map-result" title={r.label} onClick={() => pick(r)}>
+              {r.label}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )

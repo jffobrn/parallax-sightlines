@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   formatBearing,
   formatBytes,
@@ -10,9 +10,11 @@ import {
 import { useStore } from '../state/store'
 import { useMediaUrl } from '../state/useMediaUrl'
 import { ingestFile } from '../lib/ingest'
+import { readExif, type ExifData } from '../lib/exif'
 import { findWaybackSnapshot } from '../lib/wayback'
 import { BearingDial } from '../components/BearingDial'
 import { PointFields } from '../components/points'
+import { SightlineCheck } from '../components/SightlineCheck'
 import {
   CERTAINTY_OPTIONS,
   CONSENT_OPTIONS,
@@ -40,10 +42,14 @@ export function SourceEditor({ source }: { source: Source }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [wb, setWb] = useState<string | null>(null)
   const [confirmDel, setConfirmDel] = useState(false)
+  const [exif, setExif] = useState<ExifData | null>(null)
   const previewUrl = useMediaUrl(source.file?.blobKey)
 
   const id = source.id
   const patch = (partial: Partial<Source>) => updateSource(id, partial)
+
+  // A freshly read EXIF card belongs to the current source only.
+  useEffect(() => setExif(null), [id])
 
   const onFile = async (file: File | undefined) => {
     if (!file) return
@@ -51,9 +57,38 @@ export function SourceEditor({ source }: { source: Source }) {
     try {
       const held = await ingestFile(file)
       patch({ file: held })
+      setExif((await readExif(file)) ?? null)
     } finally {
       setBusy(null)
     }
+  }
+
+  // Fill the vantage (position, bearing, field of view) and time from the photo's
+  // own EXIF. GPS from a photo is precise, so the placed vantage is marked
+  // not-safe-to-publish and the consent boundary withholds it from any export.
+  const applyExif = () => {
+    if (!exif) return
+    const partial: Partial<Source> = {}
+    if (exif.capturedAtIso && !source.datetime) {
+      partial.datetime = { value: exif.capturedAtIso, precision: 'minute' }
+    }
+    if (exif.gps) {
+      partial.vantage = {
+        lat: exif.gps.lat,
+        lng: exif.gps.lng,
+        safeToPublish: false,
+        bearingDeg: exif.imgDirectionDeg ?? source.vantage?.bearingDeg ?? 0,
+        fovDeg: exif.hFovDeg ?? source.vantage?.fovDeg,
+        confidence: source.vantage?.confidence ?? 'probable',
+      }
+    } else if (exif.imgDirectionDeg !== undefined && source.vantage) {
+      partial.vantage = {
+        ...source.vantage,
+        bearingDeg: exif.imgDirectionDeg,
+        fovDeg: exif.hFovDeg ?? source.vantage.fovDeg,
+      }
+    }
+    patch(partial)
   }
 
   const requestSnapshot = async () => {
@@ -259,6 +294,62 @@ export function SourceEditor({ source }: { source: Source }) {
         </>
       )}
 
+      {exif && (
+        <>
+          <div className="divider" />
+          <span className="label">Photo metadata (EXIF)</span>
+          <dl className="kv" style={{ marginTop: 6 }}>
+            {exif.capturedAtIso && (
+              <>
+                <dt>Captured</dt>
+                <dd className="mono" style={{ fontSize: 11 }}>{exif.capturedAtIso}</dd>
+              </>
+            )}
+            {exif.gps && (
+              <>
+                <dt>GPS</dt>
+                <dd className="mono" style={{ fontSize: 11 }}>
+                  {exif.gps.lat.toFixed(5)}, {exif.gps.lng.toFixed(5)}
+                </dd>
+              </>
+            )}
+            {exif.imgDirectionDeg !== undefined && (
+              <>
+                <dt>Direction</dt>
+                <dd className="mono" style={{ fontSize: 11 }}>
+                  {exif.imgDirectionDeg}&deg;{exif.imgDirectionRef === 'M' ? ' (magnetic)' : ''}
+                </dd>
+              </>
+            )}
+            {exif.hFovDeg !== undefined && (
+              <>
+                <dt>Field of view</dt>
+                <dd className="mono" style={{ fontSize: 11 }}>
+                  ~{exif.hFovDeg}&deg;{exif.focalLength35mm ? ` (${exif.focalLength35mm}mm eq)` : ''}
+                </dd>
+              </>
+            )}
+            {exif.device && (
+              <>
+                <dt>Device</dt>
+                <dd style={{ fontSize: 11 }}>{exif.device}</dd>
+              </>
+            )}
+          </dl>
+          {(exif.gps ||
+            (exif.imgDirectionDeg !== undefined && source.vantage) ||
+            (exif.capturedAtIso && !source.datetime)) && (
+            <button className="btn btn-sm" style={{ marginTop: 8 }} onClick={applyExif}>
+              Apply to vantage &amp; time
+            </button>
+          )}
+          <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>
+            A photo&apos;s GPS is precise, so an applied vantage is marked not safe to
+            publish and is withheld from every export.
+          </p>
+        </>
+      )}
+
       <div className="divider" />
       <span className="label">Subject</span>
       <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
@@ -350,6 +441,14 @@ export function SourceEditor({ source }: { source: Source }) {
             </Field>
           </div>
         </div>
+      )}
+
+      {source.vantage && source.subject && (
+        <SightlineCheck
+          key={`${id}:${source.vantage.lat},${source.vantage.lng}:${source.subject.lat},${source.subject.lng}`}
+          vantage={source.vantage}
+          subject={source.subject}
+        />
       )}
 
       <div className="divider" />

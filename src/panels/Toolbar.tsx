@@ -8,19 +8,23 @@ import {
   isProjectFile,
 } from '../core'
 import { useStore } from '../state/store'
+import { useCursorElevation } from '../state/useCursorElevation'
 import { Count } from '../components/ui'
 import { downloadJson, readFileText, slugify } from '../lib/download'
 import { PublishDialog } from '../publish/PublishDialog'
 import { AboutDialog } from './AboutDialog'
+import { GeoDataDialog } from './GeoDataDialog'
 
 export function Toolbar() {
   const project = useStore((s) => s.project)
   const cursor = useStore((s) => s.cursor)
+  const cursorElev = useCursorElevation()
   const adoptProject = useStore((s) => s.adoptProject)
   const resetToSample = useStore((s) => s.resetToSample)
   const newBlankProject = useStore((s) => s.newBlankProject)
 
   const [publishOpen, setPublishOpen] = useState(false)
+  const [geoOpen, setGeoOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [armed, setArmed] = useState<'reset' | 'new' | null>(null)
@@ -99,6 +103,13 @@ export function Toolbar() {
         </button>
         <button
           className="btn btn-sm btn-mono btn-ghost"
+          onClick={() => setGeoOpen(true)}
+          title="Export placed points as GeoJSON or CSV (for QGIS)"
+        >
+          Geo
+        </button>
+        <button
+          className="btn btn-sm btn-mono btn-ghost"
           onClick={newBlank}
           title="Start a new, empty investigation (export first to keep this one)"
           style={armed === 'new' ? armedStyle : undefined}
@@ -140,10 +151,12 @@ export function Toolbar() {
         </span>
         <span className="cursor-readout">
           {cursor ? formatLatLng(cursor.lat, cursor.lng) : '--'}
+          {cursor && cursorElev !== null ? `  ${cursorElev} m` : ''}
         </span>
       </div>
 
       <PublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
+      <GeoDataDialog open={geoOpen} onOpenChange={setGeoOpen} />
       <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
     </div>
   )
