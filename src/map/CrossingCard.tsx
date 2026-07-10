@@ -1,4 +1,5 @@
 import { formatLatLng, type ResectionSet } from '../core'
+import type { UncertaintyEllipse } from '../lib/uncertainty'
 import { useStore } from '../state/store'
 
 /** Round an adopted crossing to ~0.1 m so it does not carry float noise. */
@@ -10,7 +11,13 @@ const round6 = (n: number) => Math.round(n * 1e6) / 1e6
  * crossing falls behind a camera, and offers the fix as a subject or incident
  * place the user accepts. Convergence of several rays is the image complex.
  */
-export function CrossingCard({ resection }: { resection: ResectionSet }) {
+export function CrossingCard({
+  resection,
+  ellipse,
+}: {
+  resection: ResectionSet
+  ellipse?: UncertaintyEllipse | null
+}) {
   const project = useStore((s) => s.project)
   const selectedSourceId = useStore((s) => s.selectedSourceId)
   const patchIncident = useStore((s) => s.patchIncident)
@@ -70,6 +77,14 @@ export function CrossingCard({ resection }: { resection: ResectionSet }) {
               <>
                 <dt>Spread</dt>
                 <dd className="mono">{resection.spreadM.toFixed(0)} m</dd>
+              </>
+            )}
+            {ellipse && (
+              <>
+                <dt>95% region</dt>
+                <dd className="mono">
+                  {ellipse.semiMajorM.toFixed(0)} &times; {ellipse.semiMinorM.toFixed(0)} m
+                </dd>
               </>
             )}
           </dl>

@@ -2,6 +2,7 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import { MapboxOverlay } from '@deck.gl/mapbox'
 import type { Layer } from '@deck.gl/core'
+import { PathLayer, PolygonLayer, ScatterplotLayer } from '@deck.gl/layers'
 import { useStore } from '../state/store'
 import { getResection } from '../lib/derive'
 import type { Project } from '../core'
@@ -18,6 +19,26 @@ import {
   type WaybackRelease,
 } from './basemap'
 import { geocodePlace, type GeoResult, parseCoordinate } from './geocode'
+import {
+  fmtArea,
+  fmtDistance,
+  type LngLatTuple,
+  pathLengthM,
+  polygonAreaM2,
+} from '../lib/measure'
+import {
+  type EllipseInput,
+  resectionEllipse,
+  sigmaForConfidence,
+  type UncertaintyEllipse,
+} from '../lib/uncertainty'
+import {
+  dayStartMs,
+  shadowBearing,
+  type SunEvents,
+  sunEvents,
+  sunPosition,
+} from '../core/astro'
 import { CrossingCard } from './CrossingCard'
 
 const BASEMAP_KEY = 'sightlines.basemap'
@@ -61,14 +82,77 @@ export function MapView() {
   const placing = useStore((s) => s.placing)
 
   const resection = useMemo(() => getResection(project), [project])
+  const ellipse = useMemo<UncertaintyEllipse | null>(() => {
+    const inputs: EllipseInput[] = []
+    for (const s of project.sources) {
+      const v = s.vantage
+      if (v && Number.isFinite(v.lat) && Number.isFinite(v.lng)) {
+        inputs.push({
+          id: s.id,
+          lat: v.lat,
+          lng: v.lng,
+          bearingDeg: v.bearingDeg,
+          sigmaDeg: sigmaForConfidence(v.confidence),
+        })
+      }
+    }
+    return resectionEllipse(inputs)
+  }, [project])
   const [basemap, setBasemap] = useState<BasemapSource>(loadBasemapPref)
   const [labels, setLabels] = useState<boolean>(loadLabelsPref)
   const [waybackDate, setWaybackDate] = useState('')
   const [releases, setReleases] = useState<WaybackRelease[]>([])
+  const [measuring, setMeasuring] = useState(false)
+  const [measurePts, setMeasurePts] = useState<LngLatTuple[]>([])
+  const [sunOn, setSunOn] = useState(false)
+  const [sunSweep, setSunSweep] = useState<number | null>(null)
 
   // Keep the latest data for imperative rebuilds (on map move).
-  const dataRef = useRef({ project, selectedSourceId, hoveredId, resection })
-  dataRef.current = { project, selectedSourceId, hoveredId, resection }
+  const dataRef = useRef({ project, selectedSourceId, hoveredId, resection, ellipse })
+  dataRef.current = { project, selectedSourceId, hoveredId, resection, ellipse }
+  const measuringRef = useRef(false)
+  const measurePtsRef = useRef<LngLatTuple[]>([])
+  measuringRef.current = measuring
+  measurePtsRef.current = measurePts
+
+  // Sun and shadow: from the incident place and time, where the sun is and which
+  // way a shadow falls, so a shadow in a photograph can be checked against it.
+  const sunData = useMemo(() => {
+    const place = project.incident.place
+    const startIso = project.incident.window.start
+    if (!place || !startIso) return null
+    const dayMs = dayStartMs(startIso)
+    if (Number.isNaN(dayMs)) return null
+    const t = Date.parse(startIso)
+    const baseMin = Number.isNaN(t)
+      ? 720
+      : Math.min(1440, Math.max(0, Math.round((t - dayMs) / 60000)))
+    return { place, dayMs, baseMin, events: sunEvents(place.lat, place.lng, startIso) }
+  }, [project.incident.place, project.incident.window.start])
+
+  const sunMinute = sunSweep ?? sunData?.baseMin ?? 720
+  const sunNow = useMemo(() => {
+    if (!sunData) return null
+    const date = new Date(sunData.dayMs + sunMinute * 60000)
+    const pos = sunPosition(sunData.place.lat, sunData.place.lng, date)
+    return { pos, shadow: shadowBearing(pos.azimuthDeg) }
+  }, [sunData, sunMinute])
+
+  const sunRay = useMemo<LngLatTuple[] | null>(() => {
+    if (!sunOn || !sunData || !sunNow || sunNow.pos.elevationDeg <= 0) return null
+    const rad = Math.PI / 180
+    const earth = 6371000
+    const L = 90
+    const b = sunNow.shadow * rad
+    const p = sunData.place
+    const end: LngLatTuple = [
+      p.lng + (L * Math.sin(b)) / (rad * earth * Math.cos(p.lat * rad)),
+      p.lat + (L * Math.cos(b)) / (rad * earth),
+    ]
+    return [[p.lng, p.lat], end]
+  }, [sunOn, sunData, sunNow])
+  const sunRayRef = useRef<LngLatTuple[] | null>(null)
+  sunRayRef.current = sunRay
 
   const buildLayers = (): Layer[] => {
     const map = mapRef.current
@@ -81,7 +165,7 @@ export function MapView() {
       north: b.getNorth(),
     }
     const d = dataRef.current
-    return buildMapLayers({
+    const layers = buildMapLayers({
       project: d.project,
       selectedSourceId: d.selectedSourceId,
       hoveredId: d.hoveredId,
@@ -89,6 +173,97 @@ export function MapView() {
       graticule: graticuleLines(bounds),
       onPickSource: (id) => useStore.getState().select(id),
     })
+    return [...ellipseLayers(), ...layers, ...sunLayers(), ...measureLayers()]
+  }
+
+  // The shadow-direction ray from the incident place, for the current sun time.
+  const sunLayers = (): Layer[] => {
+    const ray = sunRayRef.current
+    if (!ray) return []
+    return [
+      new PathLayer({
+        id: 'sun-shadow',
+        data: [ray],
+        getPath: (d) => d as LngLatTuple[],
+        getColor: [18, 22, 29, 235],
+        getWidth: 2.5,
+        widthUnits: 'pixels',
+        capRounded: true,
+      }),
+      new ScatterplotLayer({
+        id: 'sun-shadow-end',
+        data: [ray[1]],
+        getPosition: (d) => d as LngLatTuple,
+        getFillColor: [18, 22, 29, 235],
+        getRadius: 3,
+        radiusUnits: 'pixels',
+      }),
+    ]
+  }
+
+  // The 95% uncertainty ellipse for the resected fix, drawn under the markers.
+  const ellipseLayers = (): Layer[] => {
+    const e = dataRef.current.ellipse
+    if (!e) return []
+    return [
+      new PolygonLayer({
+        id: 'uncertainty-ellipse',
+        data: [e.ring],
+        getPolygon: (d) => d as LngLatTuple[],
+        getFillColor: [243, 169, 60, 24],
+        getLineColor: [243, 169, 60, 150],
+        stroked: true,
+        filled: true,
+        lineWidthUnits: 'pixels',
+        getLineWidth: 1,
+      }),
+    ]
+  }
+
+  // Distance path, area fill, and vertices for the measure tool.
+  const measureLayers = (): Layer[] => {
+    const pts = measurePtsRef.current
+    if (pts.length === 0) return []
+    const out: Layer[] = []
+    if (pts.length >= 3) {
+      out.push(
+        new PolygonLayer({
+          id: 'measure-fill',
+          data: [pts],
+          getPolygon: (d) => d as LngLatTuple[],
+          getFillColor: [243, 169, 60, 38],
+          stroked: false,
+          filled: true,
+        }),
+      )
+    }
+    if (pts.length >= 2) {
+      out.push(
+        new PathLayer({
+          id: 'measure-path',
+          data: [pts],
+          getPath: (d) => d as LngLatTuple[],
+          getColor: [243, 169, 60, 220],
+          getWidth: 2,
+          widthUnits: 'pixels',
+        }),
+      )
+    }
+    out.push(
+      new ScatterplotLayer({
+        id: 'measure-pts',
+        data: pts,
+        getPosition: (d) => d as LngLatTuple,
+        getFillColor: [243, 169, 60, 255],
+        getRadius: 4,
+        radiusUnits: 'pixels',
+        stroked: true,
+        getLineColor: [10, 12, 16, 255],
+        lineWidthUnits: 'pixels',
+        getLineWidth: 1,
+      }),
+    )
+    return out
   }
 
   const rebuild = () => {
@@ -136,8 +311,12 @@ export function MapView() {
     })
     map.on('move', rebuild)
 
-    // Placement: a click while in placing mode drops the point.
+    // A click adds a measure vertex, or drops a placement point.
     map.on('click', (e) => {
+      if (measuringRef.current) {
+        setMeasurePts((pts) => [...pts, [e.lngLat.lng, e.lngLat.lat]])
+        return
+      }
       const p = useStore.getState().placing
       if (p) useStore.getState().applyPlacement(e.lngLat.lat, e.lngLat.lng)
     })
@@ -264,7 +443,7 @@ export function MapView() {
   useEffect(() => {
     rebuild()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project, selectedSourceId, hoveredId, resection])
+  }, [project, selectedSourceId, hoveredId, resection, measurePts, sunRay])
 
   // Fit the view to placed points shortly after they change, so a coordinate
   // typed into the inspector becomes visible without a reload.
@@ -290,12 +469,24 @@ export function MapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointsKey])
 
-  // Crosshair cursor while placing.
+  // Crosshair cursor while placing or measuring.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    map.getCanvas().style.cursor = placing ? 'crosshair' : ''
-  }, [placing])
+    map.getCanvas().style.cursor = placing || measuring ? 'crosshair' : ''
+  }, [placing, measuring])
+
+  const startMeasure = () => {
+    setMeasurePts([])
+    setMeasuring(true)
+  }
+  const clearMeasure = () => setMeasurePts([])
+  const undoMeasure = () => setMeasurePts((pts) => pts.slice(0, -1))
+  const doneMeasure = () => setMeasuring(false)
+  const closeMeasure = () => {
+    setMeasuring(false)
+    setMeasurePts([])
+  }
 
   return (
     <>
@@ -318,9 +509,168 @@ export function MapView() {
         onChange={onFilePicked}
       />
       <MapPlacementBanner />
-      <CrossingCard resection={resection} />
+      <CrossingCard resection={resection} ellipse={ellipse} />
       <MapLegend />
+      <MeasureControl
+        measuring={measuring}
+        pts={measurePts}
+        onStart={startMeasure}
+        onUndo={undoMeasure}
+        onClear={clearMeasure}
+        onDone={doneMeasure}
+        onClose={closeMeasure}
+      />
+      {sunData && (
+        <SunControl
+          open={sunOn}
+          minute={sunMinute}
+          sun={sunNow}
+          events={sunData.events}
+          onOpen={() => setSunOn(true)}
+          onClose={() => {
+            setSunOn(false)
+            setSunSweep(null)
+          }}
+          onSweep={(m) => setSunSweep(m)}
+        />
+      )}
     </>
+  )
+}
+
+function SunControl({
+  open,
+  minute,
+  sun,
+  events,
+  onOpen,
+  onClose,
+  onSweep,
+}: {
+  open: boolean
+  minute: number
+  sun: { pos: { azimuthDeg: number; elevationDeg: number }; shadow: number } | null
+  events: SunEvents
+  onOpen: () => void
+  onClose: () => void
+  onSweep: (minute: number) => void
+}) {
+  if (!open) {
+    return (
+      <button
+        className="sun-start mono"
+        onClick={onOpen}
+        title="Sun and shadow at the incident place and time"
+      >
+        Sun
+      </button>
+    )
+  }
+  const hhmm = (m: number) =>
+    `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`
+  const evt = (iso: string | null) => (iso ? iso.slice(11, 16) : '--')
+  const up = sun && sun.pos.elevationDeg > 0
+  return (
+    <div className="sun-bar mono">
+      <span className="sun-title">Sun</span>
+      <span className="sun-readout">
+        {up ? (
+          <>
+            az <b>{sun!.pos.azimuthDeg.toFixed(0)}&deg;</b> &middot; el{' '}
+            <b>{sun!.pos.elevationDeg.toFixed(0)}&deg;</b> &middot; shadow{' '}
+            <b>{sun!.shadow.toFixed(0)}&deg;</b>
+          </>
+        ) : (
+          <span className="faint">sun below the horizon</span>
+        )}
+      </span>
+      <input
+        className="sun-slider"
+        type="range"
+        min={0}
+        max={1440}
+        step={5}
+        value={minute}
+        onChange={(e) => onSweep(Number(e.target.value))}
+        aria-label="time of day, UTC"
+      />
+      <span className="sun-time">{hhmm(minute)} UTC</span>
+      <span className="faint sun-events">
+        rise {evt(events.sunriseIso)} &middot; noon {evt(events.noonIso)} &middot; set{' '}
+        {evt(events.sunsetIso)}
+      </span>
+      <button className="btn btn-sm btn-ghost" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  )
+}
+
+function MeasureControl({
+  measuring,
+  pts,
+  onStart,
+  onUndo,
+  onClear,
+  onDone,
+  onClose,
+}: {
+  measuring: boolean
+  pts: LngLatTuple[]
+  onStart: () => void
+  onUndo: () => void
+  onClear: () => void
+  onDone: () => void
+  onClose: () => void
+}) {
+  if (!measuring && pts.length === 0) {
+    return (
+      <button className="measure-start mono" onClick={onStart} title="Measure distance and area">
+        Measure
+      </button>
+    )
+  }
+  const dist = pts.length >= 2 ? fmtDistance(pathLengthM(pts)) : null
+  const area = pts.length >= 3 ? fmtArea(polygonAreaM2(pts)) : null
+  return (
+    <div className="measure-card mono">
+      <div className="measure-readout">
+        <span>
+          <b>{dist ?? '--'}</b> path
+        </span>
+        {area && (
+          <span>
+            <b>{area}</b> area
+          </span>
+        )}
+        <span className="faint">{pts.length} pt{pts.length === 1 ? '' : 's'}</span>
+      </div>
+      {measuring && (
+        <p className="measure-hint faint">
+          Click the map to add points. A third point closes the area.
+        </p>
+      )}
+      <div className="btn-row">
+        {measuring ? (
+          <button className="btn btn-sm btn-ghost" onClick={onDone} disabled={pts.length < 2}>
+            Done
+          </button>
+        ) : (
+          <button className="btn btn-sm btn-ghost" onClick={onStart}>
+            New
+          </button>
+        )}
+        <button className="btn btn-sm btn-ghost" onClick={onUndo} disabled={pts.length === 0}>
+          Undo
+        </button>
+        <button className="btn btn-sm btn-ghost" onClick={onClear} disabled={pts.length === 0}>
+          Clear
+        </button>
+        <button className="btn btn-sm btn-ghost" onClick={onClose}>
+          Close
+        </button>
+      </div>
+    </div>
   )
 }
 

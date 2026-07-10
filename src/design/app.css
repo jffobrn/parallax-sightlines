@@ -372,6 +372,119 @@
   color: var(--text-3);
 }
 
+/* ---- Measure tool ---------------------------------------------------- */
+.measure-start {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-panel);
+  font-size: var(--t-micro);
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  background: rgba(11, 14, 19, 0.86);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.measure-start:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+.measure-card {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-panel);
+  min-width: 220px;
+  padding: var(--s2) var(--s3);
+  background: rgba(11, 14, 19, 0.92);
+  border: 1px solid var(--signal-line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+}
+.measure-readout {
+  display: flex;
+  gap: var(--s3);
+  align-items: baseline;
+  font-size: var(--t-sm);
+  color: var(--text-2);
+}
+.measure-readout b {
+  color: var(--signal-bright);
+  font-size: var(--t-md);
+}
+.measure-hint {
+  margin: 4px 0 6px;
+  font-size: var(--t-micro);
+  line-height: 1.35;
+}
+.measure-card .btn-row {
+  margin-top: 6px;
+  gap: 4px;
+}
+
+/* ---- Sun and shadow -------------------------------------------------- */
+.sun-start {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-panel);
+  font-size: var(--t-micro);
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  background: rgba(11, 14, 19, 0.86);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.sun-start:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+.sun-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  max-width: min(680px, calc(100% - 24px));
+  padding: 6px var(--s3);
+  background: rgba(11, 14, 19, 0.92);
+  border: 1px solid var(--signal-line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  font-size: var(--t-micro);
+  color: var(--text-2);
+}
+.sun-title {
+  color: var(--text);
+  letter-spacing: 0.06em;
+}
+.sun-readout b {
+  color: var(--signal-bright);
+}
+.sun-slider {
+  width: 130px;
+  accent-color: var(--signal);
+}
+.sun-time {
+  color: var(--text);
+  min-width: 62px;
+}
+.sun-events {
+  white-space: nowrap;
+}
+
 /* ---- Terrain line of sight ------------------------------------------- */
 .sightline-verdict {
   margin-top: 8px;
