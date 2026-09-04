@@ -36,7 +36,9 @@ investigation.
 6. **State findings.** Assertions the account makes, each tethered to the source
    ids that support it, with a certainty. A finding with no support is not kept.
 7. **Publish and export.** A self-contained interactive investigation, the full
-   JSON project file, and an optional print dossier.
+   JSON project file with import, an optional print dossier, and the placed
+   points as GeoJSON or CSV for QGIS (full coordinates, for your own use, not
+   the consent-cleared publication).
 
 ## The publish boundary
 
@@ -63,9 +65,12 @@ artifact that hosts free.
 - React, TypeScript, Vite
 - MapLibre GL with deck.gl overlays for points, sightline rays, cones, and the
   crossing
-- A synthetic forensic graticule basemap that fetches no tiles; real tiles, when
-  wanted, come from a bundled or self-hosted PMTiles archive over `pmtiles://`,
-  never a third-party service
+- A retrievable basemap: Esri World Imagery (satellite, tokenless) by default,
+  with OpenStreetMap streets, Esri topographic, dated releases of the Esri
+  Wayback archive, and a place search; plus two offline grounds, the forensic
+  coordinate grid and a local PMTiles archive over `pmtiles://`
+- Terrain instruments over public elevation tiles: a line-of-sight check between
+  a vantage and its subject, sampled from the Terrarium DEM
 - A custom visx timeline, brushed and linked to the map
 - Dexie / IndexedDB for the project, with media held as Blobs
 - WebCrypto `crypto.subtle.digest` for sha-256 fixity
@@ -73,8 +78,11 @@ artifact that hosts free.
 
 ## Safety properties
 
-- **Tiles never leak the viewport.** The default basemap makes no network
-  request at all. A sensitive area of interest cannot reach an outside server.
+- **Retrieval is narrow, and stated.** A tile request discloses the viewed
+  area's tile coordinates to the tile host (Esri, OpenStreetMap, or the DEM's
+  host for a terrain check), and a place search discloses its text to the
+  geocoder; no project data rides on any of these requests. When even the
+  viewport is sensitive, the Grid and File basemaps fetch nothing at all.
 - **Local-first.** No accounts, no servers, no uploads. The project and its
   media live in your browser's storage and only leave when you save a file.
 - **We hash only what we hold.** For a video link, the remote bytes are not
@@ -122,10 +130,10 @@ identity. The map, timeline, panels, and publishing layers build on top.
 
 ## Roadmap
 
-Parallax is planned as a small suite of siblings that share this core: **Atlas**
+Parallax is a small suite of siblings that share this core: **Atlas**
 (the image complex as a navigable space), **Situated Testimony** (model-aided oral
-history), and **Verification** (a source-criticism workbench for teaching).
-Sightlines is built first because it establishes the shared core.
+history), and **Verification** (a source-criticism and provenance workbench).
+Sightlines was built first because it establishes the shared core.
 
 ## License
 

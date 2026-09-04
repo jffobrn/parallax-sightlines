@@ -345,7 +345,8 @@ export function SourceEditor({ source }: { source: Source }) {
           )}
           <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>
             A photo&apos;s GPS is precise, so an applied vantage is marked not safe to
-            publish and is withheld from every export.
+            publish and is withheld from anything published. The Geo export is the
+            exception: it writes full coordinates for your own use, and says so.
           </p>
         </>
       )}

@@ -3,6 +3,55 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.3.0] - 2026-09-04
+
+The three feature commits of 2026-07-10, released and documented together with a
+browser-verification pass.
+
+### Added
+
+- A retrievable basemap: Esri World Imagery (satellite, tokenless) is the
+  default ground, with OpenStreetMap streets, Esri topographic, the offline
+  coordinate grid, and a local .pmtiles file as alternatives, plus a
+  place-label overlay.
+- Dated imagery: with satellite active, an Imagery menu switches from the live
+  mosaic to a dated release of the Esri World Imagery Wayback archive, so a
+  photograph can be read against imagery near its claimed moment.
+- Place search on the map: a typed coordinate resolves locally; a place name
+  queries the Nominatim geocoder, and picking a result flies the map there.
+- EXIF vantage ingest: an attached photograph's metadata panel reads the
+  capture time, device, embedded GPS, compass direction (with its true or
+  magnetic reference), and focal length with its 35mm equivalent, and an Apply
+  to vantage & time action adopts them into the source in one press. The
+  applied vantage is marked not safe to publish.
+- A terrain line-of-sight check between a source's vantage and its subject,
+  sampled from the public Terrarium elevation model, with an elevation profile
+  and a clear or blocked verdict. A screening check, not a survey.
+- A resection uncertainty ellipse: each vantage's bearing carries a spread from
+  its stated confidence, and the crossing card reports a 95% region, drawn on
+  the map around the fix.
+- A measure tool on the map: a clicked path reads out its distance in metres,
+  and a closed figure adds its area. A reading aid, not saved to the project.
+- A sun and shadow panel for the incident place and a chosen time: azimuth,
+  elevation, shadow direction, and the day's rise, noon, and set, computed
+  locally.
+- A Geo export: the placed points (incident place, subjects, vantages with
+  bearings, the resection crossing, and located findings) as GeoJSON or CSV for
+  QGIS. Full coordinates, for the researcher's own use, not the consent-cleared
+  publication.
+
+### Fixed
+
+- The README and the researcher's guide still described the pre-1.3 posture (no
+  map service called, a synthetic basemap only). Both now state the actual
+  retrieval surface: basemap tiles, the geocoder, and the elevation tiles, what
+  each request discloses, and that the Grid and File grounds fetch nothing.
+- The EXIF hint claimed an applied vantage is withheld from every export; the
+  Geo export deliberately carries full coordinates and says so. The hint now
+  names the publish boundary and the exception.
+- The app's own version constant (written into exported project files) had
+  fallen behind the release version; it is now synced.
+
 ## [1.2.1] - 2026-06-23
 
 ### Added

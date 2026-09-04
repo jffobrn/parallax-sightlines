@@ -10,9 +10,11 @@ timeline, and state findings that cite the sources supporting them. The output i
 a consent-cleared, self-contained static artifact.
 
 It is the first instrument in the **Parallax** suite. Everything runs in your
-browser. No file is uploaded, no map service is called, and the default basemap
-fetches no third-party tiles, so nothing about your area of interest leaves your
-machine.
+browser and no file is uploaded. The map retrieves basemap tiles (satellite by
+default), a place search queries a geocoder, and a terrain check samples public
+elevation tiles; nothing about your sources or your project rides on any of
+these requests, and the offline Grid and File basemaps fetch nothing at all
+(see [Privacy and data handling](#privacy-and-data-handling)).
 
 ![The reconstruction: sources in the rail, vantage rays crossing to a fix on the map, the chronology beneath, and the incident in the inspector](images/01-overview.png)
 
@@ -32,7 +34,9 @@ machine.
 - [Placing a source on the map](#placing-a-source-on-the-map)
   - [Subject and vantage](#subject-and-vantage)
   - [The bearing dial and field of view](#the-bearing-dial-and-field-of-view)
+  - [Terrain line of sight](#terrain-line-of-sight)
 - [Crossing sightlines: resection](#crossing-sightlines-resection)
+- [The map: basemap, search, and measure](#the-map-basemap-search-and-measure)
 - [The chronology](#the-chronology)
 - [Findings](#findings)
 - [Consent and release](#consent-and-release)
@@ -188,6 +192,19 @@ inspector.
 - **File.** If you attach a file, the tool records its size, dimensions, and a
   SHA-256 hash, and holds the bytes locally. The hash fixes the file; the original
   is never altered.
+- **Photo metadata (EXIF).** For an attached photograph, the tool reads embedded
+  metadata where present: the capture time, the device, an embedded GPS position,
+  the compass direction the camera faced (with its true or magnetic reference),
+  and the focal length with its 35mm equivalent, from which a horizontal field of
+  view follows. **Apply to vantage & time** adopts them in one press: the GPS
+  becomes the vantage, the direction its bearing, the field of view its cone, and
+  the capture time the source's datetime. A photo's GPS is precise, so the
+  applied vantage is marked not safe to publish and is withheld from anything
+  published (the Geo export, which writes full coordinates for your own use, is
+  the stated exception). Test the compass rather than trusting it: a phone's
+  bearing is magnetic and casual. EXIF timestamps carry no timezone, so the
+  applied time is read in your local zone; correct it if the photo was taken
+  elsewhere.
 - **Subject** and **vantage**: the geography this source supports (see below).
 - **Note.** A short note that may publish.
 
@@ -239,6 +256,17 @@ uncertain) records how sure the direction is. The bearing is what lets two
 vantages cross; the field of view draws the cone so you can see what each camera
 could and could not have seen.
 
+### Terrain line of sight
+
+A source with both a vantage and a subject gains a **terrain check** in the
+inspector: whether the ground between the two blocks the view. One press samples
+a public elevation model (the Terrarium DEM, tokenless) along the line and
+returns a verdict, **clear** or **blocked by terrain**, with an elevation
+profile, the distance, and either the minimum clearance or the size and position
+of the obstruction. Curvature and refraction are corrected, and the observer is
+placed 1.6 m above ground. It is a screening check over public elevation data,
+not a survey: it knows the ground, not the buildings on it.
+
 ---
 
 ## Crossing sightlines: resection
@@ -255,12 +283,56 @@ The crossing card reports:
   not a confident false point.
 - **Spread**: the size of the uncertainty where the rays do not meet at a single
   point.
+- **95% region**: the crossing's uncertainty, drawn on the map as an ellipse
+  around the fix. Each vantage's bearing is given a spread from its stated
+  confidence, and the region is where the true point plausibly lies. A shallow
+  crossing angle stretches the ellipse along the rays: an elongated region is
+  the geometry warning you, not a rendering flourish.
 
 From the card you can **Adopt as incident place** (set the incident's location to
 the fix) or **Set as subject** for the selected source. The language is
 deliberate: the readout calls this a *planar resection at incident scale, a
 defensible candidate, not a verified geolocation*, and that caution travels into
 the published artifact.
+
+---
+
+## The map: basemap, search, and measure
+
+The map carries its own small toolkit, added in 1.3.0.
+
+**Basemap.** The picker at the top right chooses the ground: **Satellite** (Esri
+World Imagery, tokenless, the default), **Streets** (OpenStreetMap), **Topo**
+(Esri topographic with hillshade), **Grid** (the offline forensic graticule;
+nothing is fetched), or **File** (a local `.pmtiles` basemap; nothing is
+fetched). A **Labels** toggle overlays place names on the satellite ground.
+
+**Dated imagery.** With Satellite active, the **Imagery** menu switches from the
+live mosaic to a dated release of the Esri World Imagery Wayback archive. A
+photograph claimed to show 2021 can be read against imagery from 2021, which is
+often the whole point.
+
+**Search.** The search box takes a place name or a bare coordinate. A typed
+`lat, lng` resolves locally with no network call; a place name is sent to the
+Nominatim (OpenStreetMap) geocoder, and picking a result flies the map there.
+
+**Measure.** The Measure button starts a path: click to add points, and the
+readout gives the running distance in metres; a third point closes the figure
+and adds its area. Undo, Clear, and Done are in the readout. Measurements are a
+reading aid; they are not saved to the project.
+
+**Sun and shadow.** The Sun button opens a solar panel for the incident place
+and a chosen time: the sun's azimuth and elevation, the shadow direction, and
+the day's rise, noon, and set, computed locally with no network call. Drag the
+time slider and read whether the light in a photograph agrees with the time it
+claims. At the incident's own window the panel says plainly when the sun is
+below the horizon.
+
+**What retrieval discloses.** A tile request discloses the tile coordinates of
+the area you are viewing to the tile host (Esri or OpenStreetMap); a place
+search discloses the search text to the geocoder; a terrain check discloses the
+sampled line's tile coordinates to the DEM's host. No source, media, or project
+data is ever part of these requests. Grid and File fetch nothing at all.
 
 ---
 
@@ -350,6 +422,11 @@ prints the same artifact through a print stylesheet.
 - **Export** saves the whole project as a single `.sightlines.json` file, so it
   round-trips exactly, media included.
 - **Import** loads a project file back, replacing the current one.
+- **Geo** exports the placed points (the incident place, subjects, camera
+  vantages with their bearings, the resection crossing, and located findings) as
+  **GeoJSON** or **CSV** for QGIS and other mapping tools. Coordinates are
+  written in full, so this is for your own use, not the consent-cleared
+  publication.
 
 Exporting is also how you move an investigation between machines or hand it to a
 collaborator.
@@ -376,7 +453,9 @@ work in an installed app and tell you the outcome.
 2. Set each source's **time** and its **provider**, **provenance**, and
    **consent** level.
 3. For each photograph, drop its **vantage** on the map and drag the **bearing**
-   to the direction it faced; mark a sensitive vantage not safe to publish.
+   to the direction it faced, or adopt the photo's own EXIF position and bearing
+   in one press; mark a sensitive vantage not safe to publish (an EXIF-applied
+   one is marked for you).
 4. Read the **crossing** where the rays meet, check its strength, and **adopt it
    as the incident place** if it is sound.
 5. Order the sources on the **chronology** and confirm the sequence.
@@ -400,21 +479,30 @@ correctly alongside left-to-right text.
 - **A candidate, not a survey.** A resection crossing is a defensible candidate
   location, not a verified geolocation. Weak (near-parallel) geometry is reported
   as such.
-- **You bring the material.** The tool fetches nothing; the reconstruction is only
-  as good as the sources you supply and place.
-- **The basemap is synthetic.** The default background is a graticule that fetches
-  no tiles, so the area of interest never reaches an outside server. It gives
-  geometry and scale, not satellite context.
+- **You bring the material.** The tool retrieves basemaps and elevation, never
+  sources; the reconstruction is only as good as the material you supply and
+  place.
+- **The terrain check knows the ground, not the city.** The line-of-sight check
+  samples a public elevation model; it does not know about buildings, trees, or
+  anything built since the model was made.
+- **EXIF is a witness, not an authority.** A phone's compass is magnetic and
+  casual, its clock carries no timezone, and every field can be edited. Adopt
+  the metadata as a starting point and test it.
 
 ---
 
 ## Privacy and data handling
 
 Sightlines is local-first. Typed records and media live in your browser's
-IndexedDB and are never uploaded. The synthetic graticule basemap makes no tile
-requests, so a sensitive location cannot reach an outside server, because no
-request is ever made. The published artifact is a single file you control;
-nothing is sent anywhere unless you choose to share that file.
+IndexedDB and are never uploaded. The basemap, the place search, and the terrain
+check are the retrievals: a tile request discloses the viewed area's tile
+coordinates to the tile host, a search discloses its text to the geocoder, and a
+terrain check discloses the sampled line's tile coordinates to the DEM's host;
+the Grid and File basemaps make no requests at all. No project data rides on any
+of these requests. The published artifact is a single file you control; the
+consent boundary in particular withholds a photo's embedded GPS wherever a
+vantage is marked not safe, so placing a photograph does not leak where it was
+taken. Nothing is sent anywhere unless you choose to share the artifact.
 
 ---
 
@@ -432,6 +520,12 @@ nothing is sent anywhere unless you choose to share that file.
 - **Coordinates look rounded in the artifact.** Safe coordinates are capped to
   about a metre of precision; a point marked not safe to publish is withheld
   entirely, or coarsened if you chose that policy.
+- **The satellite ground is black or watermarked.** Tiles are still loading, or
+  the imagery has no coverage at that zoom for that place (Esri serves a
+  watermark tile there). Zoom out, wait, or switch grounds.
+- **The terrain check reports an error.** The elevation tiles could not be read:
+  offline, blocked, or no coverage. Try again with a connection, or accept the
+  check is unavailable there.
 
 ---
 
