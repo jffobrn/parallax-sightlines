@@ -79,7 +79,7 @@ export const BASEMAP_TILES: Record<'satellite' | 'streets' | 'topo', RasterDef> 
   },
 }
 
-/** Transparent place-name and boundary overlay, drawn over any raster base. */
+/** Transparent place-name and boundary overlay, drawn over the online grounds. */
 const LABELS_TILES: RasterDef = {
   tiles: [
     'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -138,7 +138,8 @@ export async function fetchWaybackReleases(): Promise<WaybackRelease[]> {
 export interface BasemapOpts {
   /** pmtiles:// key for the 'file' source. */
   fileKey?: string
-  /** Overlay place-name and boundary labels on top of the raster base. */
+  /** Overlay place-name and boundary labels over an online ground. The offline
+   *  grounds (grid, file) ignore it, so choosing them never fetches. */
   labels?: boolean
   /** Override the satellite tiles with a Wayback release template. */
   satelliteUrl?: string
@@ -147,8 +148,8 @@ export interface BasemapOpts {
 /**
  * The style for a chosen basemap: a dark background always, a raster basemap
  * layer for satellite / streets / topo / a loaded PMTiles file, an optional
- * label overlay, and nothing fetched for the graticule. The grid and all points
- * are drawn over the top by deck.gl.
+ * label overlay on the online grounds, and nothing fetched for the graticule
+ * or the file. The grid and all points are drawn over the top by deck.gl.
  */
 export function makeBasemapStyle(
   source: BasemapSource,
@@ -176,7 +177,7 @@ export function makeBasemapStyle(
     layers.push({ id: 'basemap', type: 'raster', source: 'basemap' })
   }
 
-  if (opts.labels && source !== 'graticule') {
+  if (opts.labels && source !== 'graticule' && source !== 'file') {
     sources.labels = {
       type: 'raster',
       tiles: LABELS_TILES.tiles,

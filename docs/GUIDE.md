@@ -305,7 +305,8 @@ The map carries its own small toolkit, added in 1.3.0.
 World Imagery, tokenless, the default), **Streets** (OpenStreetMap), **Topo**
 (Esri topographic with hillshade), **Grid** (the offline forensic graticule;
 nothing is fetched), or **File** (a local `.pmtiles` basemap; nothing is
-fetched). A **Labels** toggle overlays place names on the satellite ground.
+fetched). A **Labels** toggle overlays place names on the online grounds; the
+offline Grid and File grounds ignore it, so they stay fetch-free.
 
 **Dated imagery.** With Satellite active, the **Imagery** menu switches from the
 live mosaic to a dated release of the Esri World Imagery Wayback archive. A

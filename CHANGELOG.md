@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.3.1] - 2026-09-04
+
+### Fixed
+
+- The place-label overlay no longer loads over the File basemap. A local
+  `.pmtiles` ground promises that nothing is fetched, but with Labels switched
+  on it still pulled label tiles from an online host, disclosing the viewed
+  area. The overlay now applies only to the online grounds, so the offline
+  grounds keep their promise unconditionally, whatever the toggle says.
+
 ## [1.3.0] - 2026-09-04
 
 The three feature commits of 2026-07-10, released and documented together with a
