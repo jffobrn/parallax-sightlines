@@ -16,6 +16,7 @@ import {
   makeBasemapStyle,
   registerBasemapFile,
   registerPmtilesProtocol,
+  remakeAttribution,
   type WaybackRelease,
 } from './basemap'
 import { geocodePlace, type GeoResult, parseCoordinate } from './geocode'
@@ -71,6 +72,7 @@ function collectPoints(project: Project): [number, number][] {
 export function MapView() {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
+  const attributionRef = useRef<maplibregl.AttributionControl | null>(null)
   const overlayRef = useRef<MapboxOverlay | null>(null)
   const loadedRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -299,7 +301,9 @@ export function MapView() {
     })
     mapRef.current = map
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+    const attribution = new maplibregl.AttributionControl({ compact: true })
+    map.addControl(attribution, 'bottom-right')
+    attributionRef.current = attribution
 
     const overlay = new MapboxOverlay({ interleaved: true, layers: [] })
     overlayRef.current = overlay
@@ -342,6 +346,7 @@ export function MapView() {
       if (raf) cancelAnimationFrame(raf)
       map.remove()
       mapRef.current = null
+      attributionRef.current = null
       overlayRef.current = null
       loadedRef.current = false
     }
@@ -359,16 +364,19 @@ export function MapView() {
     return opts
   }
 
-  // Swap the basemap style; deck layers are re-added once the new style parses.
+  // Swap the basemap style in place.
   const applyBasemap = (source: BasemapSource, opts: BasemapOpts) => {
     const map = mapRef.current
     if (!map) return
-    loadedRef.current = false
     map.setStyle(makeBasemapStyle(source, opts))
-    map.once('styledata', () => {
-      loadedRef.current = true
-      rebuild()
-    })
+    // setStyle diffs these small raster styles and applies them synchronously,
+    // firing styledata inside the call, so a listener registered afterwards
+    // never runs. Finish the swap here: replace the attribution control (the
+    // stock one keeps the outgoing ground's credit) and redraw the deck layers.
+    if (attributionRef.current) {
+      attributionRef.current = remakeAttribution(map, attributionRef.current)
+    }
+    rebuild()
   }
 
   const chooseBasemap = (source: BasemapSource) => {

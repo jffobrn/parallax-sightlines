@@ -191,6 +191,25 @@ export function makeBasemapStyle(
   return { version: 8, name: 'parallax-forensic', sources, layers }
 }
 
+/**
+ * Replace the map's attribution control with a fresh one. MapLibre's stock
+ * control caches each source's credit as tiles load and only revises that
+ * cache on source events, so when setStyle removes a source (an online ground
+ * swapped for the grid or a local file) the old credit lingers on screen even
+ * though nothing is fetched. A fresh control reads its text from the live
+ * style alone. Call this once the new style has parsed, and keep the returned
+ * control for the next swap.
+ */
+export function remakeAttribution(
+  map: maplibregl.Map,
+  ctrl: maplibregl.AttributionControl,
+): maplibregl.AttributionControl {
+  map.removeControl(ctrl)
+  const next = new maplibregl.AttributionControl({ compact: true })
+  map.addControl(next, 'bottom-right')
+  return next
+}
+
 export interface Bounds {
   west: number
   south: number
