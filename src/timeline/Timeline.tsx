@@ -91,13 +91,19 @@ export function Timeline() {
   const x = (ms: number) => scale(new Date(ms))
   const spanMs = domain[1] - domain[0]
 
-  // Two lanes: sources above, findings below.
-  const laneH = Math.min(18, innerH / 2 - 6)
-  const sourcesY = innerH * 0.32
-  const findingsY = innerH * 0.72
+  // Lanes: claimed source times, then (when any source is clock-aligned) the
+  // synced spans directly beneath them, then findings. A source's claim and
+  // its synced time stay side by side; neither overwrites the other.
+  const hasSynced = items.some((it) => it.kind === 'synced')
+  const laneH = Math.min(hasSynced ? 14 : 18, innerH / (hasSynced ? 3 : 2) - 6)
+  const sourcesY = innerH * (hasSynced ? 0.2 : 0.32)
+  const syncedY = innerH * 0.5
+  const findingsY = innerH * (hasSynced ? 0.8 : 0.72)
+  const laneOf = (it: TimelineItem) =>
+    it.kind === 'source' ? sourcesY : it.kind === 'synced' ? syncedY : findingsY
 
   const isSelected = (it: TimelineItem) =>
-    (it.kind === 'source' && it.id === selectedSourceId) ||
+    ((it.kind === 'source' || it.kind === 'synced') && (it.sourceId ?? it.id) === selectedSourceId) ||
     (it.kind === 'finding' && it.id === selectedFindingId)
 
   const inBrush = (it: TimelineItem) =>
@@ -105,6 +111,7 @@ export function Timeline() {
 
   const selectItem = (it: TimelineItem) => {
     if (it.kind === 'source') useStore.getState().select(it.id)
+    else if (it.kind === 'synced') useStore.getState().select(it.sourceId!)
     else useStore.getState().selectFinding(it.id)
   }
 
@@ -193,19 +200,24 @@ export function Timeline() {
           <text x={0} y={sourcesY - laneH / 2 - 4} fill={PAL.axis} fontSize={9} fontFamily={MONO} letterSpacing="1">
             SOURCES
           </text>
+          {hasSynced && (
+            <text x={0} y={syncedY - laneH / 2 - 4} fill={PAL.axis} fontSize={9} fontFamily={MONO} letterSpacing="1">
+              SYNCED
+            </text>
+          )}
           <text x={0} y={findingsY - laneH / 2 - 4} fill={PAL.axis} fontSize={9} fontFamily={MONO} letterSpacing="1">
             FINDINGS
           </text>
 
           {/* items */}
           {items.map((it) => {
-            const laneY = it.kind === 'source' ? sourcesY : findingsY
+            const laneY = laneOf(it)
             const x0 = x(it.start)
             const x1 = x(it.end)
             const w = Math.max(0, x1 - x0)
             const col = itemColor(it)
             const sel = isSelected(it)
-            const hov = it.id === hoveredId
+            const hov = (it.sourceId ?? it.id) === hoveredId
             const active = sel || hov
             const dim = !inBrush(it)
             const isPoint = w < 2
@@ -214,13 +226,38 @@ export function Timeline() {
               <g
                 key={it.id}
                 style={{ cursor: 'pointer', opacity: dim ? 0.32 : 1 }}
+                aria-label={it.kind === 'synced' ? `${it.label}, synced` : it.label}
                 onPointerDown={(e) => {
                   e.stopPropagation()
                   selectItem(it)
                 }}
-                onPointerEnter={() => useStore.getState().hover(it.id)}
+                onPointerEnter={() => useStore.getState().hover(it.sourceId ?? it.id)}
                 onPointerLeave={() => useStore.getState().hover(null)}
               >
+                {it.kind === 'synced' && it.sigmaMs !== undefined && it.sigmaMs > 0 && (
+                  // The start's two-sigma band: where the clip could begin.
+                  <line
+                    x1={x(it.start - 2 * it.sigmaMs)}
+                    x2={x(it.start + 2 * it.sigmaMs)}
+                    y1={laneY}
+                    y2={laneY}
+                    stroke={PAL.attested}
+                    strokeWidth={1}
+                    pointerEvents="none"
+                  />
+                )}
+                {it.conflict && (
+                  <text
+                    x={x0 + 3}
+                    y={laneY - laneH / 2 - 3}
+                    fill={PAL.embargoed}
+                    fontSize={9}
+                    fontFamily={MONO}
+                    pointerEvents="none"
+                  >
+                    claim differs
+                  </text>
+                )}
                 {isPoint ? (
                   <>
                     <line
@@ -241,7 +278,7 @@ export function Timeline() {
                     height={laneH}
                     rx={2}
                     fill={col}
-                    fillOpacity={it.kind === 'finding' ? 0.5 : 0.35}
+                    fillOpacity={it.kind === 'finding' ? 0.5 : it.kind === 'synced' ? 0.6 : 0.35}
                     stroke={active ? PAL.sel : col}
                     strokeWidth={active ? 1.8 : 1}
                     strokeDasharray={it.certainty === 'uncertain' ? '3 2' : undefined}

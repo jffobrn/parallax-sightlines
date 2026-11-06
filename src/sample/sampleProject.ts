@@ -145,7 +145,19 @@ export async function buildSampleProject(): Promise<Project> {
       id: 'src-video',
       kind: 'video-link',
       title: 'Clip of the site at night (linked)',
-      datetime: { value: '2021-03-14T02:20:00Z', precision: 'hour' },
+      // The upload page's stated time. The sync places the clip's start at
+      // 02:12:20, so this claim conflicts: most likely an upload time read as a
+      // capture time. Kept as claimed; the conflict is shown, not overwritten.
+      datetime: { value: '2021-03-14T03:05:00Z', precision: 'minute' },
+      clock: { durationSec: 360 },
+      vantage: {
+        lat: 34.4033,
+        lng: -19.8503,
+        safeToPublish: true,
+        bearingDeg: 8.3,
+        fovDeg: 50,
+        confidence: 'probable',
+      },
       provider: 'Public upload (mirror)',
       provenance: 'Found on a public page; not downloaded.',
       link: {
@@ -157,7 +169,35 @@ export async function buildSampleProject(): Promise<Project> {
       },
       consent: 'public',
       rights: 'Uploader unknown.',
-      note: 'Remote bytes are not held; only the archived snapshot is hashed.',
+      note: 'Remote bytes are not held; only the archived snapshot is hashed. Filmed from the south side of the square.',
+    },
+    {
+      id: 'src-broadcast',
+      kind: 'video-link',
+      title: 'Live broadcast segment, Vela local station (linked)',
+      datetime: { value: '2021-03-14T02:10:00Z', precision: 'second' },
+      provider: 'Vela Local Television (fictional)',
+      provenance: 'Public broadcast archive page; segment not downloaded.',
+      clock: {
+        durationSec: 600,
+        anchor: {
+          startIso: '2021-03-14T02:10:00Z',
+          uncertaintySec: 1,
+          basis: "The broadcaster's on-air clock, burned into the frame.",
+        },
+      },
+      link: { url: 'https://example.org/vela-tv-0314-0210' },
+      vantage: {
+        lat: 34.4049,
+        lng: -19.847,
+        safeToPublish: true,
+        bearingDeg: 272.3,
+        fovDeg: 40,
+        confidence: 'attested',
+      },
+      consent: 'public',
+      rights: 'Broadcast archive (fictional).',
+      note: 'Rooftop camera east of the square. Its burned-in clock anchors every clip it shares an event with.',
     },
     {
       id: 'src-embargoed',
@@ -175,6 +215,7 @@ export async function buildSampleProject(): Promise<Project> {
         fovDeg: 30,
         confidence: 'probable',
       },
+      clock: { durationSec: 0 },
       consent: 'embargoed',
       rights: 'Not cleared for publication.',
       note: 'Held for the account only. Embargoed, so it never crosses the consent boundary.',
@@ -238,6 +279,50 @@ export async function buildSampleProject(): Promise<Project> {
           'An individual visible in a fourth frame was identified as a member of the demolition crew.',
         supportedBy: ['src-embargoed'],
         certainty: 'probable',
+      },
+    ],
+    // Four moments seen or heard in both clips. The broadcast's on-air clock
+    // anchors them; the night clip is aligned through them. The fourth is read
+    // 20 s off in the night clip, a planted inconsistency the screening flags.
+    syncEvents: [
+      {
+        id: 'sync-power',
+        label: 'Street lights on the square cut out',
+        kind: 'visual',
+        observations: [
+          { sourceId: 'src-broadcast', mediaTimeSec: 254, uncertaintySec: 0.5 },
+          { sourceId: 'src-video', mediaTimeSec: 114, uncertaintySec: 0.5 },
+        ],
+      },
+      {
+        id: 'sync-boom',
+        label: 'The crane boom strikes the marquee',
+        kind: 'both',
+        observations: [
+          { sourceId: 'src-broadcast', mediaTimeSec: 312, uncertaintySec: 0.5, bearingFromDeg: 268, bearingToDeg: 276, maxRangeM: 600 },
+          { sourceId: 'src-video', mediaTimeSec: 172, uncertaintySec: 0.5, bearingFromDeg: 3, bearingToDeg: 13, maxRangeM: 600 },
+          // The embargoed frame sees the strike too; this reading never publishes.
+          { sourceId: 'src-embargoed', mediaTimeSec: 0, uncertaintySec: 2 },
+        ],
+        note: 'The flash and the report arrive together in both clips; the cameras are close.',
+      },
+      {
+        id: 'sync-facade',
+        label: 'Second facade section falls',
+        kind: 'both',
+        observations: [
+          { sourceId: 'src-broadcast', mediaTimeSec: 431, uncertaintySec: 0.5 },
+          { sourceId: 'src-video', mediaTimeSec: 291, uncertaintySec: 0.5 },
+        ],
+      },
+      {
+        id: 'sync-shout',
+        label: 'A shout, then a horn',
+        kind: 'sound',
+        observations: [
+          { sourceId: 'src-broadcast', mediaTimeSec: 500, uncertaintySec: 0.5 },
+          { sourceId: 'src-video', mediaTimeSec: 340, uncertaintySec: 0.5, note: 'Read 20 s off the others: a possible splice in the mirrored upload.' },
+        ],
       },
     ],
   }

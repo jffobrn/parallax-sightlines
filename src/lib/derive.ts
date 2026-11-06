@@ -14,6 +14,7 @@ import {
   type ResectionSet,
   type SourceKind,
 } from '../core'
+import { solveClocks } from './clock'
 
 /** Vantages with a usable origin and bearing, as resection inputs. */
 export function projectVantages(
@@ -35,7 +36,14 @@ export function getResection(project: Pick<Project, 'sources'>): ResectionSet {
 
 export interface TimelineItem {
   id: string
-  kind: 'source' | 'finding'
+  /** 'synced' is a source's media span on the aligned clock, beside its claim. */
+  kind: 'source' | 'finding' | 'synced'
+  /** For a synced span: the source it belongs to. */
+  sourceId?: string
+  /** For a synced span: the start's standard error, in ms. */
+  sigmaMs?: number
+  /** For a synced span: the source's own claimed time disagrees. */
+  conflict?: boolean
   sourceKind?: SourceKind
   label: string
   start: number
@@ -62,6 +70,27 @@ export function timelineItems(
       start: iv.start,
       end: iv.end,
       hasTime: true,
+      consent: 'consent' in s ? (s as { consent?: Consent }).consent : undefined,
+    })
+  }
+  // Synced spans: only anchored sources have an absolute place on the clock;
+  // a floating group is shown in the Clock view, relative to its reference.
+  const clocks = solveClocks(project)
+  for (const s of project.sources) {
+    const c = clocks.sources[s.id]
+    if (!c || !c.anchored) continue
+    const start = c.startSec * 1000
+    items.push({
+      id: 'synced:' + s.id,
+      kind: 'synced',
+      sourceId: s.id,
+      sourceKind: s.kind,
+      label: s.title,
+      start,
+      end: start + (c.durationSec ?? 0) * 1000,
+      hasTime: true,
+      sigmaMs: c.sigmaSec * 1000,
+      conflict: !!c.claimConflict,
       consent: 'consent' in s ? (s as { consent?: Consent }).consent : undefined,
     })
   }

@@ -82,6 +82,12 @@ export async function importProjectFile(file: ProjectFile): Promise<Project> {
   for (const [key, entry] of Object.entries(file.media ?? {})) {
     await putMedia(key, base64ToBlob(entry.base64, entry.mime))
   }
-  await saveProject(file.project)
-  return file.project
+  const project = normalizeProject(file.project)
+  await saveProject(project)
+  return project
+}
+
+/** Fill fields added after schema 1, so older files load without error. */
+export function normalizeProject(project: Project): Project {
+  return { ...project, syncEvents: project.syncEvents ?? [] }
 }

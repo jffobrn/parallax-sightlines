@@ -38,6 +38,13 @@ these requests, and the offline Grid and File basemaps fetch nothing at all
 - [Crossing sightlines: resection](#crossing-sightlines-resection)
 - [The map: basemap, search, and measure](#the-map-basemap-search-and-measure)
 - [The chronology](#the-chronology)
+- [One clock for many sources](#one-clock-for-many-sources)
+  - [Sync events and readings](#sync-events-and-readings)
+  - [Anchors and floating groups](#anchors-and-floating-groups)
+  - [When a reading disagrees](#when-a-reading-disagrees)
+  - [Zones of possible origin](#zones-of-possible-origin)
+  - [The claimed time and the synced time](#the-claimed-time-and-the-synced-time)
+  - [Sync across the consent boundary](#sync-across-the-consent-boundary)
 - [Findings](#findings)
 - [Consent and release](#consent-and-release)
 - [Publishing](#publishing)
@@ -351,6 +358,95 @@ A source with no datetime does not appear here; give it a time to place it.
 
 ---
 
+## One clock for many sources
+
+Clips of one incident rarely agree about the time. A phone's clock drifts, a
+broadcast runs on its own, an upload strips the metadata, and a clip's claimed
+time is often only what someone wrote beside it. Sightlines aligns such sources
+on one clock from the moments they share: a flash, a boom, a door, a shout,
+anything observable in more than one of them. Where Forensic Architecture
+synchronises video by its shared sounds and sights, this is the same move,
+made explicit and checkable.
+
+Switch the dock from **Chronology** to **Clock** to see the alignment: one track
+per synced source, its media drawn from its synced start, with the start's
+two-sigma band, and each shared event as a line across the tracks it was read in.
+
+### Sync events and readings
+
+Press **+ Event** on the rail's Sync events section. An event has a label, how it
+was observed (seen, heard, or both), and a set of **readings**, one per source:
+
+- **At (in media).** Where the moment falls in that source's media, as seconds or
+  m:ss.s (for example 1:42.3).
+- **± seconds.** How precisely you can read it. A flash read frame by frame is a
+  tenth of a second or better; a sound heard under wind may be a second or two.
+  The alignment weighs each reading by this figure, so state it honestly.
+- **Origin bearing from and to, and range.** Optional. From a source with a
+  placed vantage, the bearing band in which the moment's origin lies (a muzzle
+  flash at the left edge of the frame, a boom heard from the north-west), and how
+  far it could plausibly be. These bound where it came from (below).
+
+Give each clip its **duration** in the source's Media clock section, so its span
+can be drawn. A photograph is media of zero length.
+
+### Anchors and floating groups
+
+The readings fix only how the sources sit relative to each other. To place them
+in absolute time, at least one source must be an **anchor**: a clock you trust,
+such as a broadcaster's on-air clock burned into the frame, or a timestamped
+upload you have verified. Turn on **Anchor** in the Media clock section, give its
+start in ISO UTC, its uncertainty, and the **basis**: why this clock is trusted.
+The basis is published with the alignment, so a reader can weigh it.
+
+Sources linked by shared events form a group. A group that reaches an anchor
+reads in absolute time. A group that does not is still aligned internally, but
+only relative to a reference source, and it is shown as **floating** rather than
+given a clock it has not earned.
+
+### When a reading disagrees
+
+Once there are more readings than unknowns, the readings can check each other.
+The alignment is a weighted least-squares fit; the reading that fits worst is set
+aside if it misses by more than three times its own stated uncertainty, and the
+clocks are refitted, until the rest agree. A flagged reading is reported at its
+full disagreement against the clean fit and marked in red on the Clock view. It
+may mark a splice, an edit, a mislabelled clip, or simply a misread, and that may
+itself be a finding.
+
+Where an event has only two readings, they disagree equally and oppositely, so
+the evidence shows the event is inconsistent but cannot say which reading is off.
+Sightlines then names the event, never a source, and says a third reading would
+tell. Where nothing can yet be checked (no redundancy), the editor says so,
+rather than implying agreement.
+
+### Zones of possible origin
+
+Where two or more sources with placed vantages give bearing bands for the same
+event, the bands are intersected into a **zone of possible origin**, drawn on the
+map and given an area. The origin lies inside it; a point outside contradicts at
+least one source. One band alone is bounded only by its range, and bands that do
+not meet are reported as contradicting each other on where the moment came from.
+
+### The claimed time and the synced time
+
+A source's own claimed datetime is never overwritten. When the synced start, plus
+or minus two sigma, falls outside the claimed interval, the source shows both and
+flags the disagreement, on the source, on the chronology's synced track, and in
+the published artifact. **Adopt the synced time** replaces the claim with the
+synced start, to the second; it is a deliberate act, and the disagreement may be
+worth keeping as recorded instead.
+
+### Sync across the consent boundary
+
+A withheld source's readings are withheld with it, and the published alignment is
+recomputed from the public sources alone, so a withheld reading cannot move a
+published clock. An event left with no public readings is dropped. A bearing band
+publishes only when its source's vantage does, so a band cannot point back at a
+withheld vantage. The artifact's disclosure says how many readings were withheld.
+
+---
+
 ## Findings
 
 Press **+ Finding** on the rail's Findings section. A finding is the claim the
@@ -486,6 +582,10 @@ correctly alongside left-to-right text.
 - **The terrain check knows the ground, not the city.** The line-of-sight check
   samples a public elevation model; it does not know about buildings, trees, or
   anything built since the model was made.
+- **The clock is as good as its readings and its anchor.** The alignment
+  assumes each clip plays at its true rate, with no cuts between the readings
+  used; a cut shows up as a disagreeing reading, not as a corrected one. An
+  anchor's basis is a claim like any other, and the result inherits it.
 - **EXIF is a witness, not an authority.** A phone's compass is magnetic and
   casual, its clock carries no timezone, and every field can be edited. Adopt
   the metadata as a starting point and test it.

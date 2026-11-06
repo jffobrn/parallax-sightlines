@@ -9,6 +9,7 @@ import { create } from 'zustand'
 import {
   clearProject,
   loadProject,
+  normalizeProject,
   pruneMedia,
   saveProject,
   type Finding,
@@ -16,6 +17,7 @@ import {
   type Incident,
   type Project,
   type Source,
+  type SyncEvent,
 } from '../core'
 import { buildSampleProject } from '../sample/sampleProject'
 
@@ -32,10 +34,13 @@ export interface AppState {
 
   selectedSourceId: string | null
   selectedFindingId: string | null
+  selectedSyncEventId: string | null
   hoveredId: string | null
   editingSourceId: string | null
 
   timeBrush: { start: number; end: number } | null
+  /** Which view the bottom dock shows: the full chronology or the aligned clock. */
+  dockView: 'chronology' | 'clock'
   placing: Placing
   cursor: { lat: number; lng: number } | null
 
@@ -58,12 +63,19 @@ export interface AppState {
   updateFinding: (id: string, partial: Partial<Finding>) => void
   removeFinding: (id: string) => void
 
+  // sync events (clock alignment)
+  addSyncEvent: (event: SyncEvent) => void
+  updateSyncEvent: (id: string, patch: Partial<SyncEvent> | ((e: SyncEvent) => Partial<SyncEvent>)) => void
+  removeSyncEvent: (id: string) => void
+
   // selection / interaction
   select: (sourceId: string | null) => void
   selectFinding: (id: string | null) => void
+  selectSyncEvent: (id: string | null) => void
   hover: (id: string | null) => void
   setEditingSource: (id: string | null) => void
   setTimeBrush: (range: { start: number; end: number } | null) => void
+  setDockView: (v: 'chronology' | 'clock') => void
   setCursor: (c: { lat: number; lng: number } | null) => void
 
   // placement ("drop a station")
@@ -101,16 +113,18 @@ export const useStore = create<AppState>()((set, get) => {
 
     selectedSourceId: null,
     selectedFindingId: null,
+    selectedSyncEventId: null,
     hoveredId: null,
     editingSourceId: null,
     timeBrush: null,
+    dockView: 'chronology',
     placing: null,
     cursor: null,
 
     async init() {
       const existing = await loadProject()
       if (existing) {
-        set({ project: existing, ready: true })
+        set({ project: normalizeProject(existing), ready: true })
         return
       }
       const sample = await buildSampleProject()
@@ -129,6 +143,7 @@ export const useStore = create<AppState>()((set, get) => {
         project: sample,
         selectedSourceId: null,
         selectedFindingId: null,
+        selectedSyncEventId: null,
         editingSourceId: null,
         timeBrush: null,
         placing: null,
@@ -146,6 +161,7 @@ export const useStore = create<AppState>()((set, get) => {
         project,
         selectedSourceId: null,
         selectedFindingId: null,
+        selectedSyncEventId: null,
         editingSourceId: null,
         timeBrush: null,
         placing: null,
@@ -157,6 +173,7 @@ export const useStore = create<AppState>()((set, get) => {
         project,
         selectedSourceId: null,
         selectedFindingId: null,
+        selectedSyncEventId: null,
         editingSourceId: null,
         timeBrush: null,
         placing: null,
@@ -172,7 +189,7 @@ export const useStore = create<AppState>()((set, get) => {
     addSource(source) {
       const p = get().project
       commit({ ...p, sources: [...p.sources, source] })
-      set({ selectedSourceId: source.id, selectedFindingId: null })
+      set({ selectedSourceId: source.id, selectedFindingId: null, selectedSyncEventId: null })
     },
 
     updateSource(id, partial) {
@@ -192,6 +209,10 @@ export const useStore = create<AppState>()((set, get) => {
           ...f,
           supportedBy: f.supportedBy.filter((sid) => sid !== id),
         })),
+        syncEvents: p.syncEvents.map((e) => ({
+          ...e,
+          observations: e.observations.filter((o) => o.sourceId !== id),
+        })),
       })
       if (get().selectedSourceId === id) set({ selectedSourceId: null })
       if (get().editingSourceId === id) set({ editingSourceId: null })
@@ -200,7 +221,7 @@ export const useStore = create<AppState>()((set, get) => {
     addFinding(finding) {
       const p = get().project
       commit({ ...p, findings: [...p.findings, finding] })
-      set({ selectedFindingId: finding.id, selectedSourceId: null })
+      set({ selectedFindingId: finding.id, selectedSourceId: null, selectedSyncEventId: null })
     },
 
     updateFinding(id, partial) {
@@ -217,11 +238,35 @@ export const useStore = create<AppState>()((set, get) => {
       if (get().selectedFindingId === id) set({ selectedFindingId: null })
     },
 
+    addSyncEvent(event) {
+      const p = get().project
+      commit({ ...p, syncEvents: [...p.syncEvents, event] })
+      set({ selectedSyncEventId: event.id, selectedSourceId: null, selectedFindingId: null })
+    },
+    updateSyncEvent(id, patch) {
+      // Merge against the event as it is now, so edits in one tick compose.
+      const p = get().project
+      commit({
+        ...p,
+        syncEvents: p.syncEvents.map((e) =>
+          e.id === id ? { ...e, ...(typeof patch === 'function' ? patch(e) : patch) } : e,
+        ),
+      })
+    },
+    removeSyncEvent(id) {
+      const p = get().project
+      commit({ ...p, syncEvents: p.syncEvents.filter((e) => e.id !== id) })
+      if (get().selectedSyncEventId === id) set({ selectedSyncEventId: null })
+    },
+
     select(sourceId) {
-      set({ selectedSourceId: sourceId, selectedFindingId: null })
+      set({ selectedSourceId: sourceId, selectedFindingId: null, selectedSyncEventId: null })
     },
     selectFinding(id) {
-      set({ selectedFindingId: id, selectedSourceId: null })
+      set({ selectedFindingId: id, selectedSourceId: null, selectedSyncEventId: null })
+    },
+    selectSyncEvent(id) {
+      set({ selectedSyncEventId: id, selectedSourceId: null, selectedFindingId: null })
     },
     hover(id) {
       set({ hoveredId: id })
@@ -232,6 +277,9 @@ export const useStore = create<AppState>()((set, get) => {
     },
     setTimeBrush(range) {
       set({ timeBrush: range })
+    },
+    setDockView(v) {
+      set({ dockView: v })
     },
     setCursor(c) {
       set({ cursor: c })
@@ -304,5 +352,5 @@ function blankIncident(): Incident {
 }
 
 function blankProject(): Project {
-  return { incident: blankIncident(), sources: [], findings: [] }
+  return { incident: blankIncident(), sources: [], findings: [], syncEvents: [] }
 }

@@ -80,6 +80,7 @@ export function MapView() {
 
   const project = useStore((s) => s.project)
   const selectedSourceId = useStore((s) => s.selectedSourceId)
+  const selectedSyncEventId = useStore((s) => s.selectedSyncEventId)
   const hoveredId = useStore((s) => s.hoveredId)
   const placing = useStore((s) => s.placing)
 
@@ -110,8 +111,8 @@ export function MapView() {
   const [sunSweep, setSunSweep] = useState<number | null>(null)
 
   // Keep the latest data for imperative rebuilds (on map move).
-  const dataRef = useRef({ project, selectedSourceId, hoveredId, resection, ellipse })
-  dataRef.current = { project, selectedSourceId, hoveredId, resection, ellipse }
+  const dataRef = useRef({ project, selectedSourceId, selectedSyncEventId, hoveredId, resection, ellipse })
+  dataRef.current = { project, selectedSourceId, selectedSyncEventId, hoveredId, resection, ellipse }
   const measuringRef = useRef(false)
   const measurePtsRef = useRef<LngLatTuple[]>([])
   measuringRef.current = measuring
@@ -170,6 +171,7 @@ export function MapView() {
     const layers = buildMapLayers({
       project: d.project,
       selectedSourceId: d.selectedSourceId,
+      selectedSyncEventId: d.selectedSyncEventId,
       hoveredId: d.hoveredId,
       resection: d.resection,
       graticule: graticuleLines(bounds),
@@ -454,7 +456,7 @@ export function MapView() {
   useEffect(() => {
     rebuild()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project, selectedSourceId, hoveredId, resection, measurePts, sunRay])
+  }, [project, selectedSourceId, selectedSyncEventId, hoveredId, resection, measurePts, sunRay])
 
   // Fit the view to placed points shortly after they change, so a coordinate
   // typed into the inspector becomes visible without a reload.

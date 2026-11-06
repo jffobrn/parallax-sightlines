@@ -17,8 +17,11 @@ export type Consent = 'public' | 'restricted' | 'embargoed'
 /** How sure an assertion or a placement is. */
 export type Certainty = 'attested' | 'probable' | 'uncertain'
 
-/** A datetime carries the precision it was actually known to, never more. */
-export type TimePrecision = 'minute' | 'hour' | 'day' | 'approximate'
+/**
+ * A datetime carries the precision it was actually known to, never more.
+ * 'second' exists for clock-aligned media: a time read off a synced timeline.
+ */
+export type TimePrecision = 'second' | 'minute' | 'hour' | 'day' | 'approximate'
 
 export type SourceKind =
   | 'photograph'
@@ -96,11 +99,55 @@ export interface ExternalLink {
   archivedAt?: string
 }
 
+/**
+ * A source's media clock: how long its media runs, and optionally a trusted
+ * absolute start that anchors the alignment of every source it shares events
+ * with. A photograph is media of zero length.
+ */
+export interface MediaClock {
+  durationSec?: number
+  /** A reliable absolute start for the media, with its basis stated. */
+  anchor?: { startIso: string; uncertaintySec: number; basis: string }
+}
+
+/**
+ * One source's reading of a shared event: where in its own media the event is
+ * seen or heard, how precisely, and optionally the bearing band (from the
+ * source's vantage) within which the event's origin lies.
+ */
+export interface SyncObservation {
+  sourceId: string
+  /** Seconds from the start of the source's media. */
+  mediaTimeSec: number
+  uncertaintySec: number
+  /** Bearing band, degrees clockwise from north, from the source's vantage. */
+  bearingFromDeg?: number
+  bearingToDeg?: number
+  /** How far the band is drawn, in metres; the zone never extends beyond it. */
+  maxRangeM?: number
+  note?: string
+}
+
+/**
+ * A moment observable in more than one source (a flash, a siren onset, a
+ * boom striking a wall). Only the observations are stored; the alignment of
+ * the sources' clocks is derived from them at read time, never saved as fact.
+ */
+export interface SyncEvent {
+  id: string
+  label: string
+  kind: 'sound' | 'visual' | 'both'
+  observations: SyncObservation[]
+  note?: string
+}
+
 export interface Source {
   id: string
   kind: SourceKind
   title: string
   datetime?: { value: string; precision: TimePrecision }
+  /** The media clock, for sources aligned on shared events. */
+  clock?: MediaClock
   /** Who provided it. Reduced to an alias in anything published. */
   provider?: string
   /** Origin and how obtained. Withheld from anything published. */
@@ -129,11 +176,13 @@ export interface Project {
   incident: Incident
   sources: Source[]
   findings: Finding[]
+  /** Shared events that align the sources' clocks. Schema 2; empty before it. */
+  syncEvents: SyncEvent[]
 }
 
 // --- Export envelope -------------------------------------------------------
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 /**
  * The full project as written to a single file (the user's own keeping). This
@@ -190,6 +239,7 @@ export interface PublicSource {
   kind: SourceKind
   title: string
   datetime?: { value: string; precision: TimePrecision }
+  clock?: MediaClock
   /** Provider reduced to a stable alias, e.g. "Source A". Never the real name. */
   providerAlias?: string
   file?: PublicFile
@@ -218,8 +268,23 @@ export interface PublicFinding {
   at?: { time?: string; place?: PublicGeoPoint }
 }
 
+/**
+ * A sync event that survived the boundary: only observations from published
+ * sources remain, and a bearing band survives only with a publishable vantage.
+ */
+export interface PublicSyncEvent {
+  id: string
+  label: string
+  kind: 'sound' | 'visual' | 'both'
+  observations: SyncObservation[]
+  note?: string
+}
+
 /** A record of what the consent boundary removed or altered, for honest disclosure. */
 export interface Redactions {
+  syncObservationsDropped: number
+  syncEventsDropped: number
+  syncBearingsWithheld: number
   sourcesDropped: number
   droppedByConsent: { restricted: number; embargoed: number }
   providersAliased: number
@@ -233,6 +298,7 @@ export interface PublicProject {
   incident: PublicIncident
   sources: PublicSource[]
   findings: PublicFinding[]
+  syncEvents: PublicSyncEvent[]
   redactions: Redactions
   generatedAt?: string
 }

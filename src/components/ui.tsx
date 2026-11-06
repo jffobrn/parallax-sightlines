@@ -202,6 +202,7 @@ export const CERTAINTY_OPTIONS: EnumOption<Certainty>[] = [
 ]
 
 export const PRECISION_OPTIONS = [
+  { value: 'second', label: 'SEC' },
   { value: 'minute', label: 'MIN' },
   { value: 'hour', label: 'HOUR' },
   { value: 'day', label: 'DAY' },

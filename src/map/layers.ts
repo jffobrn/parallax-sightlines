@@ -12,6 +12,7 @@ import {
   type Project,
   type ResectionSet,
 } from '../core'
+import { eventWedges, originZones } from '../lib/zones'
 import type { Graticule } from './basemap'
 
 const RAY_LEN_M = 520
@@ -35,6 +36,11 @@ const C = {
   place: [167, 176, 189, 255] as RGBA,
   alert: [229, 84, 75, 255] as RGBA,
   sel: [255, 193, 99, 255] as RGBA,
+  wedge: [243, 169, 60, 14] as RGBA,
+  wedgeSel: [243, 169, 60, 34] as RGBA,
+  wedgeLine: [243, 169, 60, 70] as RGBA,
+  zone: [255, 193, 99, 60] as RGBA,
+  zoneLine: [255, 193, 99, 255] as RGBA,
 }
 
 export interface BuildLayersArgs {
@@ -43,6 +49,8 @@ export interface BuildLayersArgs {
   hoveredId: string | null
   resection: ResectionSet
   graticule: Graticule
+  /** The sync event in focus: its bearing bands and zone are emphasised. */
+  selectedSyncEventId?: string | null
   onPickSource?: (id: string) => void
 }
 
@@ -140,6 +148,47 @@ export function buildMapLayers(args: BuildLayersArgs): Layer[] {
         getLineColor: [0, 0, 0, 0],
         stroked: false,
         filled: true,
+        parameters: { depthTest: false },
+        pickable: false,
+      }),
+    )
+  }
+
+  // Bearing bands from sync readings, and the zone of possible origin where
+  // they meet. The bands are faint; the zone, the bounded region the origin
+  // must lie in, is outlined.
+  const wedges = eventWedges(project)
+  if (wedges.length) {
+    layers.push(
+      new PolygonLayer({
+        id: 'sync-wedges',
+        data: wedges,
+        getPolygon: (d: { ring: [number, number][] }) => d.ring,
+        getFillColor: (d: { eventId: string }) => (d.eventId === args.selectedSyncEventId ? C.wedgeSel : C.wedge),
+        getLineColor: C.wedgeLine,
+        lineWidthMinPixels: 1,
+        stroked: true,
+        filled: true,
+        updateTriggers: { getFillColor: [args.selectedSyncEventId] },
+        parameters: { depthTest: false },
+        pickable: false,
+      }),
+    )
+  }
+  const zones = originZones(project).filter((z) => !z.empty && z.wedges > 1)
+  if (zones.length) {
+    layers.push(
+      new PolygonLayer({
+        id: 'origin-zones',
+        data: zones,
+        getPolygon: (d: { ring: [number, number][] }) => d.ring,
+        getFillColor: C.zone,
+        getLineColor: C.zoneLine,
+        getLineWidth: (d: { eventId: string }) => (d.eventId === args.selectedSyncEventId ? 2.5 : 1.5),
+        lineWidthUnits: 'pixels',
+        stroked: true,
+        filled: true,
+        updateTriggers: { getLineWidth: [args.selectedSyncEventId] },
         parameters: { depthTest: false },
         pickable: false,
       }),

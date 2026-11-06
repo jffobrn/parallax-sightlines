@@ -31,6 +31,7 @@ import type {
   PublicLink,
   PublicProject,
   PublicSource,
+  PublicSyncEvent,
   PublicVantage,
   Redactions,
   Source,
@@ -80,6 +81,9 @@ export function publicClone(
 ): PublicProject {
   const opts = { ...DEFAULTS, ...options }
   const redactions: Redactions = {
+    syncObservationsDropped: 0,
+    syncEventsDropped: 0,
+    syncBearingsWithheld: 0,
     sourcesDropped: 0,
     droppedByConsent: { restricted: 0, embargoed: 0 },
     providersAliased: 0,
@@ -171,6 +175,7 @@ export function publicClone(
       kind: s.kind,
       title: s.title,
       datetime: s.datetime,
+      clock: s.clock,
       providerAlias: s.provider ? aliasByProvider.get(s.provider) : undefined,
       file,
       link,
@@ -209,6 +214,35 @@ export function publicClone(
     .map(cleanFinding)
     .filter((f): f is PublicFinding => f !== null)
 
+  // 3b. Sync events keep only observations from published sources; an event
+  // left with none is dropped. A bearing band crosses only when its source's
+  // vantage itself publishes: a band drawn from a withheld camera would
+  // re-locate it. The published alignment and zones are recomputed from what
+  // survives, so the artifact reproduces from itself.
+  const publishedVantage = new Set(sources.filter((s) => s.vantage).map((s) => s.id))
+  const syncEvents: PublicSyncEvent[] = []
+  for (const e of project.syncEvents ?? []) {
+    const observations = []
+    for (const o of e.observations) {
+      if (!survivingIds.has(o.sourceId)) {
+        redactions.syncObservationsDropped++
+        continue
+      }
+      const hasBand = Number.isFinite(o.bearingFromDeg) && Number.isFinite(o.bearingToDeg)
+      if (hasBand && !publishedVantage.has(o.sourceId)) {
+        redactions.syncBearingsWithheld++
+        observations.push({ sourceId: o.sourceId, mediaTimeSec: o.mediaTimeSec, uncertaintySec: o.uncertaintySec, note: o.note })
+      } else {
+        observations.push({ ...o })
+      }
+    }
+    if (observations.length === 0) {
+      redactions.syncEventsDropped++
+      continue
+    }
+    syncEvents.push({ id: e.id, label: e.label, kind: e.kind, observations, note: e.note })
+  }
+
   // 4. Incident, with the same coordinate discipline on its place.
   const incidentPlacePublic = project.incident.place
     ? cleanPoint(project.incident.place)
@@ -230,6 +264,7 @@ export function publicClone(
     incident,
     sources,
     findings,
+    syncEvents,
     redactions,
     generatedAt: opts.generatedAt,
   }
@@ -258,6 +293,12 @@ export function redactionLines(r: Redactions): string[] {
     lines.push(`${r.findingsDropped} finding${r.findingsDropped === 1 ? '' : 's'} dropped for lack of public support`)
   if (r.findingsSupportReduced > 0)
     lines.push(`${r.findingsSupportReduced} finding${r.findingsSupportReduced === 1 ? '' : 's'} kept with reduced support`)
+  if (r.syncObservationsDropped > 0)
+    lines.push(`${r.syncObservationsDropped} sync reading${r.syncObservationsDropped === 1 ? '' : 's'} withheld with ${r.syncObservationsDropped === 1 ? 'its source' : 'their sources'}; the published alignment is recomputed without ${r.syncObservationsDropped === 1 ? 'it' : 'them'}`)
+  if (r.syncEventsDropped > 0)
+    lines.push(`${r.syncEventsDropped} sync event${r.syncEventsDropped === 1 ? '' : 's'} dropped with no published reading`)
+  if (r.syncBearingsWithheld > 0)
+    lines.push(`${r.syncBearingsWithheld} bearing band${r.syncBearingsWithheld === 1 ? '' : 's'} withheld with an unpublished camera position`)
   if (lines.length === 0) lines.push('Nothing required redaction.')
   return lines
 }

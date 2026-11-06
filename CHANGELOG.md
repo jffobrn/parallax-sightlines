@@ -3,6 +3,49 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.4.0] - 2026-11-05
+
+### Added
+
+- One clock for many sources. Sync events record a moment observable in more
+  than one source (seen, heard, or both), with a reading of where it falls in
+  each source's media and how precisely. A weighted least-squares alignment
+  places every linked source on one clock, with a standard error on each start
+  and each event. Sources a trusted anchor reaches read in absolute time; a
+  group no anchor reaches is aligned relative to a reference source and shown
+  as floating.
+- Readings check each other once there is redundancy: the worst-fitting
+  reading beyond three of its own uncertainties is set aside and the clocks
+  refitted, so a splice, an edit, or a misread shows its full disagreement. An
+  event read in only two sources is flagged as inconsistent without blaming
+  either one. Where nothing can be checked, the editor says so.
+- Zones of possible origin: bearing bands from placed vantages are intersected
+  on the map, with the zone's area.
+- A Clock view in the dock (beside the Chronology), a synced track on the
+  chronology with two-sigma whiskers, a Media clock section on each source
+  (duration, anchor with its published basis), and a Sync events section on
+  the rail.
+- The claimed time and the synced time are shown side by side, and a
+  disagreement is flagged; the claim is never overwritten unless you adopt the
+  synced time.
+- Second precision for datetimes.
+- The published artifact carries a Clock alignment section (each source's
+  synced start and anchor basis, each event's time, flags, and zones) and the
+  zones on its static map.
+
+### Changed
+
+- The project schema moves to version 2 (sources gain a media clock, projects
+  gain sync events). Version 1 files import unchanged, with no sync events.
+
+### Security
+
+- At the consent boundary, a withheld source's readings are withheld with it,
+  events left with no public reading are dropped, a bearing band publishes only
+  when its source's vantage does, and the published alignment is recomputed
+  from public sources alone, so a withheld reading cannot move a published
+  clock. The smoke test probes for the embargoed sample source's id and title.
+
 ## [1.3.2] - 2026-11-05
 
 ### Security

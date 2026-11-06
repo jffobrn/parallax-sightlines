@@ -15,6 +15,7 @@ import { findWaybackSnapshot } from '../lib/wayback'
 import { BearingDial } from '../components/BearingDial'
 import { PointFields } from '../components/points'
 import { SightlineCheck } from '../components/SightlineCheck'
+import { MediaClockPanel } from './MediaClockPanel'
 import {
   CERTAINTY_OPTIONS,
   CONSENT_OPTIONS,
@@ -451,6 +452,8 @@ export function SourceEditor({ source }: { source: Source }) {
           subject={source.subject}
         />
       )}
+
+      <MediaClockPanel source={source} />
 
       <div className="divider" />
       <Field label="Note">

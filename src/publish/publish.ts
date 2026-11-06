@@ -23,6 +23,8 @@ import {
   type PublicProject,
   type PublicSource,
 } from '../core'
+import { solveClocks } from '../lib/clock'
+import { originZones } from '../lib/zones'
 
 function esc(s: string | undefined): string {
   if (!s) return ''
@@ -117,6 +119,18 @@ function buildSvgMap(pub: PublicProject): string {
     const gy = pad + ((H - 2 * pad) * i) / 6
     parts.push(`<line x1="${gx.toFixed(1)}" y1="${pad}" x2="${gx.toFixed(1)}" y2="${H - pad}" class="m-grid"/>`)
     parts.push(`<line x1="${pad}" y1="${gy.toFixed(1)}" x2="${W - pad}" y2="${gy.toFixed(1)}" class="m-grid"/>`)
+  }
+
+  // zones of possible origin, recomputed from the published readings
+  for (const z of originZones(pub)) {
+    if (z.empty || z.wedges < 2) continue
+    const d = z.ring
+      .map(([lng, lat], i) => {
+        const c = proj(lat, lng)
+        return `${i === 0 ? 'M' : 'L'}${c.x.toFixed(1)},${c.y.toFixed(1)}`
+      })
+      .join(' ')
+    parts.push(`<path d="${d} Z" class="m-zone"/>`)
   }
 
   // rays
@@ -220,6 +234,67 @@ function chronologyRows(pub: PublicProject, idToLabel: Map<string, string>): str
     .join('')}</ol>`
 }
 
+/**
+ * The clock alignment, recomputed from the published readings alone so the
+ * artifact reproduces from itself. Shows each synced source, each event's
+ * time, any reading the published evidence cannot accommodate, and where a
+ * source's own claimed time disagrees with the synced one.
+ */
+function clockSection(pub: PublicProject, idToLabel: Map<string, string>): string {
+  if (!pub.syncEvents.length) return ''
+  const sol = solveClocks(pub)
+  const hms = (sec: number) => new Date(sec * 1000).toISOString().slice(11, 21)
+  const titleOf = (id: string) => pub.sources.find((x) => x.id === id)?.title ?? id
+  const rows = Object.values(sol.sources)
+    .map((c) => {
+      const s = pub.sources.find((x) => x.id === c.sourceId)
+      const anchor = s?.clock?.anchor
+      const when = c.anchored
+        ? `<span class="mono">${hms(c.startSec)}</span> UTC &plusmn; ${c.sigmaSec.toFixed(1)} s`
+        : `floating, ${esc(formatSec(c.startSec))} after ${esc(titleOf(c.refSourceId!))}`
+      const basis = anchor ? `<div class="muted">Anchor: ${esc(anchor.basis || 'stated start')}</div>` : ''
+      const claim =
+        c.claimConflict && s?.datetime
+          ? `<div class="clock-flag">Claimed ${esc(formatInstant(s.datetime.value))}; the synced start disagrees.</div>`
+          : ''
+      return `<tr><td>${esc(idToLabel.get(c.sourceId) ?? '')}</td><td${dirAttr(titleOf(c.sourceId))}>${esc(titleOf(c.sourceId))}${basis}${claim}</td><td>${when}</td></tr>`
+    })
+    .join('')
+  const events = pub.syncEvents
+    .map((e) => {
+      const t = sol.events[e.id]
+      const when = t?.anchored ? `<span class="mono">${hms(t.timeSec)}</span> &plusmn; ${t.sigmaSec.toFixed(1)} s` : 'floating'
+      const flags = sol.residuals.filter((r) => r.eventId === e.id && r.flagged)
+      const flag = flags.length
+        ? `<div class="clock-flag">${
+            flags[0].ambiguous
+              ? `Its two readings disagree with the other events by ${Math.abs(flags[0].residualSec).toFixed(1)} s; one is off, and the published evidence cannot say which.`
+              : flags.map((r) => `The reading in ${esc(titleOf(r.sourceId))} disagrees by ${Math.abs(r.residualSec).toFixed(1)} s and is set aside.`).join(' ')
+          }</div>`
+        : ''
+      const zone = originZones(pub).find((z) => z.eventId === e.id)
+      const zoneNote =
+        zone && !zone.empty && zone.wedges > 1
+          ? `<div class="muted">Zone of possible origin: ${Math.round(zone.areaM2).toLocaleString('en')} m&sup2;, from ${zone.wedges} bearing bands.</div>`
+          : ''
+      return `<tr><td>${esc(e.kind)}</td><td${dirAttr(e.label)}>${esc(e.label)}${flag}${zoneNote}</td><td>${when}</td></tr>`
+    })
+    .join('')
+  return `<section class="block">
+  <h2 class="block-label">Clock alignment</h2>
+  <p class="muted">The sources below are placed on one clock from moments they share, by weighted least squares, recomputed from the published readings only. A source no anchor reaches is aligned only relative to the others. Plus or minus values are one standard error.</p>
+  <table class="clock-table"><tbody>${rows}</tbody></table>
+  <table class="clock-table"><tbody>${events}</tbody></table>
+</section>`
+}
+
+function formatSec(sec: number): string {
+  const a = Math.abs(sec)
+  const m = Math.floor(a / 60)
+  const s = (a % 60).toFixed(1).padStart(4, '0')
+  return `${sec < 0 ? '-' : ''}${m}:${s}`
+}
+
 export function buildPublishedHtml(pub: PublicProject): string {
   const idToLabel = new Map<string, string>()
   pub.sources.forEach((s, i) => idToLabel.set(s.id, exhibitLabel(i)))
@@ -294,6 +369,8 @@ export function buildPublishedHtml(pub: PublicProject): string {
   ${chronologyRows(pub, idToLabel)}
 </section>
 
+${clockSection(pub, idToLabel)}
+
 <section class="block">
   <h2 class="block-label">Findings</h2>
   ${findingsHtml}
@@ -345,6 +422,12 @@ body{background:var(--bg);color:var(--text);font-family:'Archivo',system-ui,sans
 .tag{border:1px solid var(--line2);border-radius:2px;padding:2px 8px;font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t2)}
 .summary{color:var(--t2);max-width:70ch;margin-top:8px}
 .block{margin:34px 0}
+.m-zone{fill:rgba(255,193,99,.22);stroke:#ffc163;stroke-width:1.5}
+.clock-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.clock-table td{border-top:1px solid var(--line);padding:6px 8px;vertical-align:top}
+.clock-table td:first-child{font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--t3);white-space:nowrap}
+.clock-table td:last-child{white-space:nowrap}
+.clock-flag{color:#e5544b;font-size:12px;margin-top:3px}
 .block-label{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:16px;font-weight:500}
 .sitemap{width:100%;height:auto;background:var(--bg1);border:1px solid var(--line2);border-radius:4px}
 .map-empty{padding:30px;border:1px dashed var(--line2);color:var(--t3);text-align:center;border-radius:4px}

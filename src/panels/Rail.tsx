@@ -1,25 +1,38 @@
+import { useMemo } from 'react'
 import {
   formatDateTimeShort,
   newId,
   type Finding,
   type Source,
+  type SyncEvent,
 } from '../core'
 import { useStore } from '../state/store'
+import { solveClocks } from '../lib/clock'
 import { CertaintyBadge, ConsentBadge, Dir, KindBadge, rowButton } from '../components/ui'
 
 export function Rail() {
   const project = useStore((s) => s.project)
   const selectedSourceId = useStore((s) => s.selectedSourceId)
   const selectedFindingId = useStore((s) => s.selectedFindingId)
+  const selectedSyncEventId = useStore((s) => s.selectedSyncEventId)
   const hoveredId = useStore((s) => s.hoveredId)
   const select = useStore((s) => s.select)
   const selectFinding = useStore((s) => s.selectFinding)
+  const selectSyncEvent = useStore((s) => s.selectSyncEvent)
+  const addSyncEvent = useStore((s) => s.addSyncEvent)
   const hover = useStore((s) => s.hover)
   const addSource = useStore((s) => s.addSource)
   const addFinding = useStore((s) => s.addFinding)
 
   const incident = project.incident
-  const editingIncident = !selectedSourceId && !selectedFindingId
+  const editingIncident = !selectedSourceId && !selectedFindingId && !selectedSyncEventId
+  const clocks = useMemo(() => solveClocks(project), [project])
+  const flaggedEvents = new Set(clocks.residuals.filter((r) => r.flagged).map((r) => r.eventId))
+
+  const onAddSyncEvent = () => {
+    const e: SyncEvent = { id: newId('sync'), label: 'New sync event', kind: 'both', observations: [] }
+    addSyncEvent(e)
+  }
 
   const onAddSource = () => {
     const s: Source = {
@@ -128,6 +141,44 @@ export function Rail() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Sync events: shared moments that put the sources on one clock */}
+      <div className="panel">
+        <div className="panel-head">
+          <span className="label"><span className="label-num">05</span>Sync events</span>
+          <span className="faint mono" style={{ fontSize: 11 }}>{project.syncEvents.length}</span>
+          <button className="btn btn-sm btn-ghost" onClick={onAddSyncEvent}>+ Event</button>
+        </div>
+        <div className="list">
+          {project.syncEvents.length === 0 && (
+            <div className="empty">No sync events. Add a moment seen or heard in more than one source to align their clocks.</div>
+          )}
+          {project.syncEvents.map((e) => {
+            const t = clocks.events[e.id]
+            return (
+              <div
+                key={e.id}
+                className="row"
+                data-selected={e.id === selectedSyncEventId}
+                data-hovered={e.id === hoveredId && e.id !== selectedSyncEventId}
+                {...rowButton(() => selectSyncEvent(e.id))}
+                onMouseEnter={() => hover(e.id)}
+                onMouseLeave={() => hover(null)}
+              >
+                <div className="row-main">
+                  <div className="row-title"><Dir text={e.label || 'Untitled event'} /></div>
+                  <div className="row-sub">
+                    <span>{e.kind}</span>
+                    <span>{e.observations.length} reading{e.observations.length === 1 ? '' : 's'}</span>
+                    {t?.anchored && <span className="mono">{new Date(t.timeSec * 1000).toISOString().slice(11, 19)}</span>}
+                    {flaggedEvents.has(e.id) && <span className="alert">inconsistent</span>}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </>

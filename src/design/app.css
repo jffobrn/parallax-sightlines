@@ -589,3 +589,29 @@
   text-align: right;
   color: var(--text-2);
 }
+
+/* ---- Sync readings ---------------------------------------------------- */
+.sync-reading {
+  border-left: 2px solid var(--line-strong);
+  padding: var(--s2) 0 var(--s2) var(--s3);
+  margin-bottom: var(--s3);
+}
+.sync-reading[data-flagged='true'] {
+  border-left-color: var(--alert);
+}
+.clock-claim {
+  margin-top: var(--s2);
+}
+.field-row-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.sync-reading-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+.sync-reading-head > :first-child {
+  flex: 1;
+  min-width: 0;
+}
