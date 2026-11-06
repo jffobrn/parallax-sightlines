@@ -18,7 +18,7 @@ import { SightlineCheck } from '../components/SightlineCheck'
 import { MediaClockPanel } from './MediaClockPanel'
 import {
   CERTAINTY_OPTIONS,
-  CONSENT_OPTIONS,
+  ConsentChoice,
   Dir,
   EnumSeg,
   Field,
@@ -26,12 +26,6 @@ import {
   PRECISION_OPTIONS,
   SelectMenu,
 } from '../components/ui'
-
-const CONSENT_NOTE: Record<Source['consent'], string> = {
-  public: 'Included in exports and the published investigation.',
-  restricted: 'Kept in your project file, withheld from anything published.',
-  embargoed: 'Kept in your project file, withheld from anything published.',
-}
 
 export function SourceEditor({ source }: { source: Source }) {
   const updateSource = useStore((s) => s.updateSource)
@@ -167,7 +161,7 @@ export function SourceEditor({ source }: { source: Source }) {
               }
             />
           </Field>
-          <p className="faint" style={{ fontSize: 11, marginTop: -4 }}>
+          <p className="faint" style={{ fontSize: 13, marginTop: -4 }}>
             {formatDateTime(source.datetime.value, source.datetime.precision)}
           </p>
         </>
@@ -199,19 +193,9 @@ export function SourceEditor({ source }: { source: Source }) {
       </Field>
 
       <div className="divider" />
-      <span className="label">Consent</span>
+      <span className="label">Who may see this source</span>
       <div style={{ height: 6 }} />
-      <EnumSeg
-        value={source.consent}
-        options={CONSENT_OPTIONS}
-        onChange={(v) => patch({ consent: v })}
-      />
-      <p
-        className={source.consent === 'public' ? 'faint' : 'alert'}
-        style={{ fontSize: 11, marginTop: 6 }}
-      >
-        {CONSENT_NOTE[source.consent]}
-      </p>
+      <ConsentChoice value={source.consent} onChange={(v) => patch({ consent: v })} />
 
       <div className="divider" />
       {isVideo ? (
@@ -230,11 +214,11 @@ export function SourceEditor({ source }: { source: Source }) {
           <button className="btn btn-sm" onClick={requestSnapshot} disabled={!source.link?.url}>
             Request archived snapshot
           </button>
-          {wb && <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>{wb}</p>}
+          {wb && <p className="faint" style={{ fontSize: 13, marginTop: 6 }}>{wb}</p>}
           {source.link?.archivedUrl && (
             <dl className="kv" style={{ marginTop: 10 }}>
               <dt>Archived</dt>
-              <dd className="mono" style={{ wordBreak: 'break-all', fontSize: 11 }}>
+              <dd className="mono" style={{ wordBreak: 'break-all', fontSize: 13 }}>
                 {source.link.archivedUrl}
               </dd>
               {source.link.archivedAt && (
@@ -251,7 +235,7 @@ export function SourceEditor({ source }: { source: Source }) {
               )}
             </dl>
           )}
-          <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>
+          <p className="faint" style={{ fontSize: 13, marginTop: 6 }}>
             Remote bytes are not held and cannot be hashed at source; the hash is of
             the snapshot record.
           </p>
@@ -273,7 +257,7 @@ export function SourceEditor({ source }: { source: Source }) {
               )}
               <dl className="kv" style={{ marginTop: 8 }}>
                 <dt>Name</dt>
-                <dd className="mono" style={{ fontSize: 11 }}>{source.file.name}</dd>
+                <dd className="mono" style={{ fontSize: 13 }}>{source.file.name}</dd>
                 <dt>Size</dt>
                 <dd className="mono">
                   {formatBytes(source.file.bytes)}
@@ -291,7 +275,7 @@ export function SourceEditor({ source }: { source: Source }) {
               {busy ?? 'Add file'}
             </button>
           )}
-          {busy && source.file && <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>{busy}</p>}
+          {busy && source.file && <p className="faint" style={{ fontSize: 13, marginTop: 6 }}>{busy}</p>}
         </>
       )}
 
@@ -303,13 +287,13 @@ export function SourceEditor({ source }: { source: Source }) {
             {exif.capturedAtIso && (
               <>
                 <dt>Captured</dt>
-                <dd className="mono" style={{ fontSize: 11 }}>{exif.capturedAtIso}</dd>
+                <dd className="mono" style={{ fontSize: 13 }}>{exif.capturedAtIso}</dd>
               </>
             )}
             {exif.gps && (
               <>
                 <dt>GPS</dt>
-                <dd className="mono" style={{ fontSize: 11 }}>
+                <dd className="mono" style={{ fontSize: 13 }}>
                   {exif.gps.lat.toFixed(5)}, {exif.gps.lng.toFixed(5)}
                 </dd>
               </>
@@ -317,7 +301,7 @@ export function SourceEditor({ source }: { source: Source }) {
             {exif.imgDirectionDeg !== undefined && (
               <>
                 <dt>Direction</dt>
-                <dd className="mono" style={{ fontSize: 11 }}>
+                <dd className="mono" style={{ fontSize: 13 }}>
                   {exif.imgDirectionDeg}&deg;{exif.imgDirectionRef === 'M' ? ' (magnetic)' : ''}
                 </dd>
               </>
@@ -325,7 +309,7 @@ export function SourceEditor({ source }: { source: Source }) {
             {exif.hFovDeg !== undefined && (
               <>
                 <dt>Field of view</dt>
-                <dd className="mono" style={{ fontSize: 11 }}>
+                <dd className="mono" style={{ fontSize: 13 }}>
                   ~{exif.hFovDeg}&deg;{exif.focalLength35mm ? ` (${exif.focalLength35mm}mm eq)` : ''}
                 </dd>
               </>
@@ -333,7 +317,7 @@ export function SourceEditor({ source }: { source: Source }) {
             {exif.device && (
               <>
                 <dt>Device</dt>
-                <dd style={{ fontSize: 11 }}>{exif.device}</dd>
+                <dd style={{ fontSize: 13 }}>{exif.device}</dd>
               </>
             )}
           </dl>
@@ -344,7 +328,7 @@ export function SourceEditor({ source }: { source: Source }) {
               Apply to vantage &amp; time
             </button>
           )}
-          <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>
+          <p className="faint" style={{ fontSize: 13, marginTop: 6 }}>
             A photo&apos;s GPS is precise, so an applied vantage is marked not safe to
             publish and is withheld from anything published. The Geo export is the
             exception: it writes full coordinates for your own use, and says so.
@@ -354,7 +338,7 @@ export function SourceEditor({ source }: { source: Source }) {
 
       <div className="divider" />
       <span className="label">Subject</span>
-      <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
+      <p className="faint" style={{ fontSize: 13, margin: '4px 0 8px' }}>
         Where the depicted thing is.
       </p>
       <PointFields
@@ -368,7 +352,7 @@ export function SourceEditor({ source }: { source: Source }) {
 
       <div className="divider" />
       <span className="label">Vantage</span>
-      <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
+      <p className="faint" style={{ fontSize: 13, margin: '4px 0 8px' }}>
         Where the camera was, and the way it looked.
       </p>
       <PointFields

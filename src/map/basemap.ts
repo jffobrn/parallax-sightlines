@@ -94,7 +94,7 @@ const LABELS_TILES: RasterDef = {
   maxzoom: 19,
 }
 
-export const BG_COLOR = '#07090c'
+export const BG_COLOR = '#f3ebf6'
 
 /** A dated release of the Esri Wayback World Imagery archive. */
 export interface WaybackRelease {
@@ -147,6 +147,8 @@ export interface BasemapOpts {
   /** Overlay place-name and boundary labels over an online ground. The offline
    *  grounds (grid, file) ignore it, so choosing them never fetches. */
   labels?: boolean
+  /** Background under the tiles and the grid, from the interface theme. */
+  background?: string
   /** Override the satellite tiles with a Wayback release template. */
   satelliteUrl?: string
 }
@@ -163,7 +165,7 @@ export function makeBasemapStyle(
 ): StyleSpecification {
   const sources: Record<string, SourceSpecification> = {}
   const layers: LayerSpecification[] = [
-    { id: 'background', type: 'background', paint: { 'background-color': BG_COLOR } },
+    { id: 'background', type: 'background', paint: { 'background-color': opts.background ?? BG_COLOR } },
   ]
 
   if (source === 'satellite' || source === 'streets' || source === 'topo') {

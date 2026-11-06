@@ -4,27 +4,35 @@ import { AxisBottom } from '@visx/axis'
 import { Group } from '@visx/group'
 import { useStore } from '../state/store'
 import { timeExtent, timelineItems, type TimelineItem } from '../lib/derive'
+import { token, useTheme } from '../state/theme'
 
-const PAL = {
-  axis: '#6f7989',
-  grid: '#1b212b',
-  window: 'rgba(127,168,191,0.07)',
-  windowLine: 'rgba(127,168,191,0.35)',
-  public: '#d8d2c0',
-  restricted: '#f3a93c',
-  embargoed: '#e5544b',
-  attested: '#ffc163',
-  probable: '#a7b0bd',
-  uncertain: '#6f7989',
-  sel: '#ffc163',
-  brush: 'rgba(243,169,60,0.14)',
-  brushLine: 'rgba(243,169,60,0.6)',
+/** Timeline colours, read from the design tokens so both themes follow. */
+function readPal() {
+  return {
+    axis: token('--text-3'),
+    label: token('--text-2'),
+    halo: token('--surface-2'),
+    grid: token('--line-2'),
+    window: token('--signal-wash'),
+    windowLine: token('--signal-line'),
+    public: token('--line-strong'),
+    restricted: token('--alert'),
+    embargoed: token('--alert'),
+    attested: token('--mark'),
+    probable: token('--text-2'),
+    uncertain: token('--text-3'),
+    sel: token('--primary'),
+    brush: token('--signal-wash'),
+    brushLine: token('--signal-line'),
+  }
 }
+type Pal = ReturnType<typeof readPal>
 
 const M = { top: 12, right: 18, bottom: 24, left: 18 }
-const MONO = "'Spline Sans Mono', ui-monospace, monospace"
+const MONO = "'Plex Mono', ui-monospace, monospace"
+const SANS = "'Syne', sans-serif"
 
-function itemColor(it: TimelineItem): string {
+function itemColor(it: TimelineItem, PAL: Pal): string {
   if (it.kind === 'finding') {
     return it.certainty === 'attested'
       ? PAL.attested
@@ -47,6 +55,9 @@ function fmtTick(d: Date, spanMs: number): string {
 }
 
 export function Timeline() {
+  const theme = useTheme()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const PAL = useMemo(() => readPal(), [theme])
   const project = useStore((s) => s.project)
   const selectedSourceId = useStore((s) => s.selectedSourceId)
   const selectedFindingId = useStore((s) => s.selectedFindingId)
@@ -197,16 +208,16 @@ export function Timeline() {
           />
 
           {/* lane labels */}
-          <text x={0} y={sourcesY - laneH / 2 - 4} fill={PAL.axis} fontSize={9} fontFamily={MONO} letterSpacing="1">
-            SOURCES
+          <text x={0} y={sourcesY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
+            Sources
           </text>
           {hasSynced && (
-            <text x={0} y={syncedY - laneH / 2 - 4} fill={PAL.axis} fontSize={9} fontFamily={MONO} letterSpacing="1">
-              SYNCED
+            <text x={0} y={syncedY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
+              Synced
             </text>
           )}
-          <text x={0} y={findingsY - laneH / 2 - 4} fill={PAL.axis} fontSize={9} fontFamily={MONO} letterSpacing="1">
-            FINDINGS
+          <text x={0} y={findingsY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
+            Findings
           </text>
 
           {/* items */}
@@ -215,7 +226,7 @@ export function Timeline() {
             const x0 = x(it.start)
             const x1 = x(it.end)
             const w = Math.max(0, x1 - x0)
-            const col = itemColor(it)
+            const col = itemColor(it, PAL)
             const sel = isSelected(it)
             const hov = (it.sourceId ?? it.id) === hoveredId
             const active = sel || hov
@@ -251,11 +262,11 @@ export function Timeline() {
                     x={x0 + 3}
                     y={laneY - laneH / 2 - 3}
                     fill={PAL.embargoed}
-                    fontSize={9}
-                    fontFamily={MONO}
+                    fontSize={12}
+                    fontFamily={SANS}
                     pointerEvents="none"
                   >
-                    claim differs
+                    Claimed time differs
                   </text>
                 )}
                 {isPoint ? (
@@ -314,7 +325,7 @@ export function Timeline() {
             tickFormat={(v) => fmtTick(v as Date, spanMs)}
             tickLabelProps={() => ({
               fill: PAL.axis,
-              fontSize: 9,
+              fontSize: 11,
               fontFamily: MONO,
               textAnchor: 'middle',
               dy: '0.2em',

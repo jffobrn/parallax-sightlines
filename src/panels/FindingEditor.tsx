@@ -71,7 +71,7 @@ export function FindingEditor({ finding }: { finding: Finding }) {
 
       <div className="divider" />
       <span className="label">Supported by</span>
-      <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
+      <p className="faint" style={{ fontSize: 13, margin: '4px 0 8px' }}>
         Tie this assertion to its sources.
       </p>
       <div className="stack" style={{ gap: 2 }}>

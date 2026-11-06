@@ -1,64 +1,117 @@
 /*
  * Parallax design tokens (shared core).
  *
- * A deliberately authored, screen-native forensic identity: the situation room,
- * not a dashboard. Near-black cool neutrals, hairline structure, a single amber
- * signal reserved for the crossing and for findings, and a red used only for
- * protection and danger. Monospace carries the apparatus (coordinates,
- * bearings, timestamps, hashes); the sans carries the voice. These variables are
- * the suite's palette; later Parallax tools import this file unchanged.
+ * Colour field: the agency's identity carried into its instruments. A lilac
+ * field frames the work; the working surfaces are white; deep violet marks the
+ * selection and the one primary action; raspberry marks what the evidence
+ * converges on (the crossing, findings). Red is kept for protection and
+ * danger. Night field is the dark counterpart in the same violet, for imagery
+ * and night work. Syne carries the voice; IBM Plex Mono carries only data.
+ *
+ * Light by default; dark follows the system unless the viewer chooses, which
+ * sets data-theme on the root.
  */
 
+@font-face {
+  font-family: 'Syne';
+  src: url('./fonts/syne-latin.woff2') format('woff2');
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Syne';
+  src: url('./fonts/syne-latin-ext.woff2') format('woff2');
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Plex Mono';
+  src: url('./fonts/plex-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Plex Mono';
+  src: url('./fonts/plex-mono-500.woff2') format('woff2');
+  font-weight: 500 600;
+  font-display: swap;
+}
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
   /* Type */
-  --font-sans: 'Archivo', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Spline Sans Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  --font-display: 'Archivo', system-ui, sans-serif;
-  --font-arabic: 'Noto Naskh Arabic', 'Archivo', serif;
+  --font-sans: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+  --font-arabic: 'Noto Naskh Arabic', 'Syne', serif;
 
-  /* Neutrals: cool near-black, layered surfaces, hairline lines */
-  --bg: #07090c;
-  --bg-1: #0b0e13;
-  --bg-2: #10141b;
-  --bg-3: #161b24;
-  --bg-4: #1d2430;
-  --line: #1b212b;
-  --line-2: #262f3b;
-  --line-strong: #38424f;
+  /* Colour field (light) */
+  --field: #ead2f7;
+  --field-2: #e1c3f1;
+  --surface: #ffffff;
+  --surface-2: #fbf7fd;
+  --surface-3: #f4eaf8;
+  --map-ground: #f3ebf6;
 
-  --text: #e7ebf0;
-  --text-2: #a7b0bd;
-  --text-3: #6f7989;
-  --text-faint: #495160;
+  /* Legacy surface names, mapped onto the field and surfaces. */
+  --bg: var(--field);
+  --bg-1: var(--surface);
+  --bg-2: var(--surface);
+  --bg-3: var(--surface-3);
+  --bg-4: #ecdcf3;
 
-  /* Signal: sodium amber. The crossing, findings, the active selection. */
-  --signal: #f3a93c;
-  --signal-bright: #ffc163;
-  --signal-dim: #9a6f2c;
-  --signal-wash: rgba(243, 169, 60, 0.12);
-  --signal-line: rgba(243, 169, 60, 0.42);
+  --line: #e6d4ee;
+  --line-2: #d8bfe5;
+  --line-strong: #b996cc;
+
+  --text: #160b18;
+  --text-2: #4b3b4f;
+  --text-3: #66546b;
+  --text-faint: #8d7c92;
+
+  /* Primary: deep violet. The selection, the active state, the one primary action. */
+  --primary: #5a1666;
+  --primary-ink: #ffffff;
+  --primary-hover: #6e2280;
+  --select: #5a1666;
+  --select-ink: #ffffff;
+
+  /* Kept under the old names so every rule keeps working. */
+  --signal: #5a1666;
+  --signal-bright: #5a1666;
+  --signal-dim: #9a6aa6;
+  --signal-wash: rgba(90, 22, 102, 0.07);
+  --signal-line: rgba(90, 22, 102, 0.32);
+
+  /* Mark: raspberry. What the evidence converges on: the crossing, findings. */
+  --mark: #c2185b;
+  --mark-wash: rgba(194, 24, 91, 0.08);
 
   /* Alert / protection: embargo, unsafe coordinates, destructive actions only. */
-  --alert: #e5544b;
-  --alert-bright: #ff7a72;
-  --alert-dim: #97352f;
-  --alert-wash: rgba(229, 84, 75, 0.12);
+  --alert: #b3261e;
+  --alert-bright: #b3261e;
+  --alert-dim: #e2a29d;
+  --alert-wash: #fbeeed;
 
-  /* Map roles, kept low-saturation so amber stays the one loud colour. */
-  --subject: #7fa8bf;
-  --subject-wash: rgba(127, 168, 191, 0.16);
-  --vantage: #d8d2c0;
-  --ray: rgba(216, 210, 192, 0.5);
+  /* Map roles, as CSS swatches for the key. The map itself keys its colours
+     to the ground (see map/palette.ts). */
+  --subject: #5a1666;
+  --subject-wash: rgba(90, 22, 102, 0.12);
+  --vantage: #ffffff;
+  --ray: rgba(90, 22, 102, 0.5);
 
   /* Geometry */
-  --r-sm: 2px;
-  --r: 3px;
-  --r-lg: 5px;
+  --r-sm: 4px;
+  --r: 6px;
+  --r-lg: 10px;
 
-  --shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
-  --shadow-pop: 0 16px 50px rgba(0, 0, 0, 0.66);
+  --shadow: 0 6px 20px rgba(22, 11, 24, 0.1);
+  --shadow-pop: 0 14px 40px rgba(22, 11, 24, 0.16);
 
   /* Spacing scale */
   --s1: 4px;
@@ -69,21 +122,103 @@
   --s6: 32px;
   --s7: 48px;
 
-  /* Type scale */
-  --t-micro: 10px;
-  --t-xs: 11px;
-  --t-sm: 12px;
-  --t-base: 13px;
-  --t-md: 14px;
-  --t-lg: 16px;
+  /* Type scale: nothing that carries meaning below 12px. */
+  --t-micro: 12px;
+  --t-xs: 12px;
+  --t-sm: 13px;
+  --t-base: 14px;
+  --t-md: 15px;
+  --t-lg: 17px;
   --t-xl: 20px;
   --t-2xl: 26px;
 
-  --track: 0.08em; /* letter-spacing for mono labels */
+  --track: 0;
 
   /* Layers */
   --z-panel: 10;
   --z-overlay: 50;
   --z-dialog: 100;
   --z-toast: 200;
+}
+
+/* Night field (dark): the same violet, never dev-tool blue-black. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --field: #1c1120;
+    --field-2: #2a1a2f;
+    --surface: #241628;
+    --surface-2: #20131f;
+    --surface-3: #2f1f34;
+    --map-ground: #2a1c2f;
+    --bg-4: #3a2840;
+    --line: #35253b;
+    --line-2: #46324d;
+    --line-strong: #6a5272;
+    --text: #f4ebf7;
+    --text-2: #d3c2d8;
+    --text-3: #ab98b1;
+    --text-faint: #85728b;
+    --primary: #ead2f7;
+    --primary-ink: #160b18;
+    --primary-hover: #f3e3fb;
+    --select: #ead2f7;
+    --select-ink: #160b18;
+    --signal: #ead2f7;
+    --signal-bright: #ead2f7;
+    --signal-dim: #9d84a6;
+    --signal-wash: rgba(234, 210, 247, 0.09);
+    --signal-line: rgba(234, 210, 247, 0.34);
+    --mark: #ff7eb3;
+    --mark-wash: rgba(255, 126, 179, 0.1);
+    --alert: #ff8a80;
+    --alert-bright: #ff8a80;
+    --alert-dim: #7d3a35;
+    --alert-wash: rgba(255, 138, 128, 0.1);
+    --subject: #ead2f7;
+    --subject-wash: rgba(234, 210, 247, 0.14);
+    --vantage: #f4ebf7;
+    --ray: rgba(234, 210, 247, 0.5);
+    --shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
+    --shadow-pop: 0 16px 46px rgba(0, 0, 0, 0.5);
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --field: #1c1120;
+  --field-2: #2a1a2f;
+  --surface: #241628;
+  --surface-2: #20131f;
+  --surface-3: #2f1f34;
+  --map-ground: #2a1c2f;
+  --bg-4: #3a2840;
+  --line: #35253b;
+  --line-2: #46324d;
+  --line-strong: #6a5272;
+  --text: #f4ebf7;
+  --text-2: #d3c2d8;
+  --text-3: #ab98b1;
+  --text-faint: #85728b;
+  --primary: #ead2f7;
+  --primary-ink: #160b18;
+  --primary-hover: #f3e3fb;
+  --select: #ead2f7;
+  --select-ink: #160b18;
+  --signal: #ead2f7;
+  --signal-bright: #ead2f7;
+  --signal-dim: #9d84a6;
+  --signal-wash: rgba(234, 210, 247, 0.09);
+  --signal-line: rgba(234, 210, 247, 0.34);
+  --mark: #ff7eb3;
+  --mark-wash: rgba(255, 126, 179, 0.1);
+  --alert: #ff8a80;
+  --alert-bright: #ff8a80;
+  --alert-dim: #7d3a35;
+  --alert-wash: rgba(255, 138, 128, 0.1);
+  --subject: #ead2f7;
+  --subject-wash: rgba(234, 210, 247, 0.14);
+  --vantage: #f4ebf7;
+  --ray: rgba(234, 210, 247, 0.5);
+  --shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 16px 46px rgba(0, 0, 0, 0.5);
 }

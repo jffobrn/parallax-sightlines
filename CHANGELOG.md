@@ -3,6 +3,36 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.5.0] - 2026-11-05
+
+### Changed
+
+- A new visual identity, Colour field, carried over from the agency's own site:
+  a lilac field frames the work, the working surfaces are white, deep violet
+  marks the selection and the one primary action, and raspberry marks what the
+  evidence converges on. Syne is the interface face throughout; IBM Plex Mono
+  is kept for data only (coordinates, times, hashes). Both are vendored, so
+  nothing is fetched. Archivo and Spline Sans Mono are retired.
+- A dark mode, Night field, in the same violet. It follows the system setting;
+  Case, then Appearance, fixes Light or Dark for this browser.
+- Plain language in place of apparatus: no numbered section codes, no tracked
+  capitals, no status pills. Consent and certainty read as words, and a
+  restricted or embargoed source carries a red rule down its row. Consent in
+  the source editor is a choice with each level's meaning beside it. Sources
+  are called sources throughout (no more "exhibits").
+- The top bar holds the case title, the readout, a Case menu (new, open, save,
+  export places, reset to the sample, appearance), Help, and Publish as the
+  only filled button, so New and Reset no longer sit beside Publish. Both ask
+  to confirm in a dialog.
+- The map's controls sit in one strip on its top edge (search, Ground,
+  Measure, Sun), and the crossing readout moved into the rail, so nothing
+  floats over the sightlines. Map marks change colour with the ground, light
+  over imagery and violet over the light grounds.
+- Interface text is 14 px (was 11 to 12 px).
+- On a narrow screen the columns stack, map first.
+- The published artifact takes the same identity, with Syne embedded so the
+  file stays self-contained, and numbers its sources "Source 1" and so on.
+
 ## [1.4.0] - 2026-11-05
 
 ### Added

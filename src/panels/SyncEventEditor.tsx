@@ -6,9 +6,9 @@ import { originZones, DEFAULT_RANGE_M } from '../lib/zones'
 import { ConsentBadge, Dir, EnumSeg, Field, SelectMenu } from '../components/ui'
 
 const KIND_OPTIONS = [
-  { value: 'visual', label: 'SEEN' },
-  { value: 'sound', label: 'HEARD' },
-  { value: 'both', label: 'BOTH' },
+  { value: 'visual', label: 'Seen' },
+  { value: 'sound', label: 'Heard' },
+  { value: 'both', label: 'Both' },
 ] as const
 
 /**
@@ -163,7 +163,7 @@ export function SyncEventEditor({ event }: { event: SyncEvent }) {
 
       <div className="divider" />
       <span className="label">Readings</span>
-      <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
+      <p className="faint" style={{ fontSize: 13, margin: '4px 0 8px' }}>
         Where the moment falls in each source&apos;s media (m:ss.s), and how precisely. A bearing band, from a source
         with a placed vantage, bounds where the moment came from.
       </p>
@@ -231,10 +231,10 @@ export function SyncEventEditor({ event }: { event: SyncEvent }) {
               </Field>
             </div>
             {o.bearingFromDeg !== undefined && o.bearingToDeg !== undefined && !src?.vantage && (
-              <div className="warn" style={{ fontSize: 11 }}>This source has no placed vantage, so the band cannot be drawn.</div>
+              <div className="warn" style={{ fontSize: 13 }}>This source has no placed vantage, so the band cannot be drawn.</div>
             )}
             {r && !r.flagged && group && group.redundancy > 0 && (
-              <span className="faint mono" style={{ fontSize: 10 }}>fits the others to {Math.abs(r.residualSec).toFixed(2)} s</span>
+              <span className="faint mono" style={{ fontSize: 13 }}>fits the others to {Math.abs(r.residualSec).toFixed(2)} s</span>
             )}
             <button className="btn btn-sm btn-ghost" style={{ marginTop: 4 }} onClick={() => removeObs(i)}>
               Remove reading
@@ -243,14 +243,14 @@ export function SyncEventEditor({ event }: { event: SyncEvent }) {
         )
       })}
       <button className="btn btn-sm btn-ghost" onClick={addObs} disabled={project.sources.length === 0}>
-        + Reading
+        Add reading
       </button>
 
       {zone && (
         <>
           <div className="divider" />
           <span className="label">Zone of possible origin</span>
-          <p className="faint" style={{ fontSize: 11, margin: '4px 0 0' }}>
+          <p className="faint" style={{ fontSize: 13, margin: '4px 0 0' }}>
             {zone.empty
               ? 'The bearing bands do not meet: the readings contradict each other on where this came from.'
               : zone.wedges === 1

@@ -1,5 +1,5 @@
 import { useStore } from '../state/store'
-import { ConsentBadge, Dir } from '../components/ui'
+import { ConsentBadge, Dir, kindLabel } from '../components/ui'
 import { SourceEditor } from './SourceEditor'
 import { FindingEditor } from './FindingEditor'
 import { IncidentEditor } from './IncidentEditor'
@@ -25,11 +25,11 @@ export function Inspector() {
   if (syncEvent) {
     return (
       <>
-        <div className="panel-head">
-          <span className="label"><span className="label-num">SY</span>Sync event</span>
-        </div>
-        <div className="inspector-title">
-          <Dir text={syncEvent.label || 'Untitled event'} />
+        <div className="inspector-head">
+          <div className="kicker">Sync event</div>
+          <div className="inspector-title">
+            <Dir text={syncEvent.label || 'Untitled event'} />
+          </div>
         </div>
         <div className="scroll-y grow">
           <SyncEventEditor key={syncEvent.id} event={syncEvent} />
@@ -41,12 +41,14 @@ export function Inspector() {
   if (source) {
     return (
       <>
-        <div className="panel-head">
-          <span className="label"><span className="label-num">EX</span>Exhibit</span>
-          <ConsentBadge consent={source.consent} />
-        </div>
-        <div className="inspector-title">
-          <Dir text={source.title} />
+        <div className="inspector-head">
+          <div className="kicker">
+            <span>Source, {kindLabel(source.kind).toLowerCase()}</span>
+            <ConsentBadge consent={source.consent} />
+          </div>
+          <div className="inspector-title">
+            <Dir text={source.title} />
+          </div>
         </div>
         <div className="scroll-y grow">
           <SourceEditor source={source} />
@@ -58,8 +60,8 @@ export function Inspector() {
   if (finding) {
     return (
       <>
-        <div className="panel-head">
-          <span className="label"><span className="label-num">FN</span>Finding</span>
+        <div className="inspector-head">
+          <div className="kicker">Finding</div>
         </div>
         <div className="scroll-y grow">
           <FindingEditor finding={finding} />
@@ -70,8 +72,9 @@ export function Inspector() {
 
   return (
     <>
-      <div className="panel-head">
-        <span className="label"><span className="label-num">IN</span>Incident</span>
+      <div className="inspector-head">
+        <div className="kicker">Incident</div>
+        <div className="inspector-title">Editing the incident</div>
       </div>
       <div className="scroll-y grow">
         <IncidentEditor />

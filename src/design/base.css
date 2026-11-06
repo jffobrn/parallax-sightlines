@@ -20,7 +20,7 @@ body,
 body {
   font-family: var(--font-sans);
   font-size: var(--t-base);
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -34,7 +34,8 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 700;
   line-height: 1.25;
 }
 
@@ -53,20 +54,23 @@ button {
 }
 
 a {
-  color: var(--signal);
-  text-decoration: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
 }
 a:hover {
-  text-decoration: underline;
+  color: var(--mark);
+  text-decoration-color: currentColor;
 }
 
-/* Focus: a precise amber ring, never the default blur. */
+/* Focus: a clear violet ring, never the default blur. */
 :focus {
   outline: none;
 }
 :focus-visible {
-  outline: 1.5px solid var(--signal);
-  outline-offset: 1px;
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 ::selection {
@@ -85,7 +89,7 @@ a:hover {
 }
 *::-webkit-scrollbar-thumb {
   background: var(--line-strong);
-  border-radius: 0;
+  border-radius: 6px;
   border: 2px solid transparent;
   background-clip: content-box;
 }

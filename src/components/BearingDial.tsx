@@ -56,7 +56,7 @@ export function BearingDial({
         if (e.buttons === 1) handle(e)
       }}
     >
-      <circle cx={c} cy={c} r={r} fill="#0b0e13" stroke="#262f3b" />
+      <circle cx={c} cy={c} r={r} style={{ fill: "var(--surface-2)", stroke: "var(--line-2)" }} />
       {Array.from({ length: 24 }).map((_, i) => {
         const a = (i * 15 * Math.PI) / 180 - Math.PI / 2
         const inner = i % 6 === 0 ? r - 7 : r - 4
@@ -67,7 +67,7 @@ export function BearingDial({
             y1={c + inner * Math.sin(a)}
             x2={c + r * Math.cos(a)}
             y2={c + r * Math.sin(a)}
-            stroke="#38424f"
+            style={{ stroke: "var(--line-strong)" }}
             strokeWidth={1}
           />
         )
@@ -79,9 +79,9 @@ export function BearingDial({
             key={cd.t}
             x={c + (r - 16) * Math.cos(a)}
             y={c + (r - 16) * Math.sin(a)}
-            fill={cd.t === 'N' ? '#f3a93c' : '#6f7989'}
-            fontSize={9}
-            fontFamily="'Spline Sans Mono', monospace"
+            style={{ fill: cd.t === 'N' ? 'var(--primary)' : 'var(--text-3)', fontWeight: cd.t === 'N' ? 700 : 400 }}
+            fontSize={11}
+            fontFamily="'Syne', sans-serif"
             textAnchor="middle"
             dominantBaseline="central"
           >
@@ -89,9 +89,9 @@ export function BearingDial({
           </text>
         )
       })}
-      <line x1={c} y1={c} x2={tip.x} y2={tip.y} stroke="#ffc163" strokeWidth={2} />
-      <circle cx={tip.x} cy={tip.y} r={4} fill="#ffc163" />
-      <circle cx={c} cy={c} r={2.5} fill="#a7b0bd" />
+      <line x1={c} y1={c} x2={tip.x} y2={tip.y} style={{ stroke: "var(--mark)" }} strokeWidth={2} />
+      <circle cx={tip.x} cy={tip.y} r={4} style={{ fill: "var(--mark)" }} />
+      <circle cx={c} cy={c} r={2.5} style={{ fill: "var(--text-2)" }} />
     </svg>
   )
 }

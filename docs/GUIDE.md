@@ -27,7 +27,7 @@ these requests, and the offline Grid and File basemaps fetch nothing at all
 - [Install and run](#install-and-run)
 - [The interface](#the-interface)
 - [The incident](#the-incident)
-- [Sources (the exhibits)](#sources-the-exhibits)
+- [Sources](#sources)
   - [What a source records](#what-a-source-records)
   - [Consent: who may see this source](#consent-who-may-see-this-source)
   - [Hashing and provenance](#hashing-and-provenance)
@@ -49,7 +49,7 @@ these requests, and the offline Grid and File basemaps fetch nothing at all
 - [Consent and release](#consent-and-release)
 - [Publishing](#publishing)
 - [Saving and sharing projects](#saving-and-sharing-projects)
-- [Starting over: New and Reset](#starting-over-new-and-reset)
+- [Starting over: a new investigation, or the sample](#starting-over-a-new-investigation-or-the-sample)
 - [A worked example](#a-worked-example-end-to-end)
 - [Keyboard and accessibility](#keyboard-and-accessibility)
 - [Limits and caveats](#limits-and-caveats)
@@ -90,7 +90,7 @@ A Sightlines investigation is built from a few kinds of record:
 - **The incident** is the single event or site under reconstruction. It carries
   its titles (one per language), a type, a time window, a summary, tags, and an
   optional place.
-- **Sources** (shown as *exhibits*) are the material you hold: photographs,
+- **Sources** are the material you hold: photographs,
   documents, testimony, video. Each carries its kind, a capture time, its
   provider and provenance, rights, a consent level, an optional held file with a
   SHA-256 hash, and any geography it supports (a subject point, a camera vantage).
@@ -137,17 +137,29 @@ to the browser automatically; a reload restores it.
 ## The interface
 
 The window has three columns and a bar beneath. A left **rail** lists the
-incident, the exhibits, and the findings; a central **map**; a right
-**inspector** that edits whatever is selected; and a **chronology** docked along
-the bottom. The topbar holds the actions and a live **readout** (the count of
-sources, how many are public, the count of findings, and the cursor's
-coordinates).
+incident, the crossing, the sources, the findings, and the sync events; a
+central **map**; a right **inspector** that edits whatever is selected; and the
+**time** dock along the bottom (the chronology, or the clock alignment).
+
+The top bar carries the case title, a live **readout** (the count of sources,
+how many are public, the count of findings, and the cursor's coordinates), and
+three controls: the **Case** menu (new, open, save, export places, reset to the
+sample, and appearance), **Help** (about, and this guide), and **Publish**, the
+one primary action.
+
+**Appearance.** Sightlines opens in a light working mode and switches to a dark
+one when your system does. Case, then Appearance, fixes it to Light or Dark for
+this browser; the choice is a viewer's preference and is never saved in the
+project. On a narrow screen the columns stack, with the map first.
 
 - Click the **incident card** at the top of the rail to edit the incident.
 - Click any **source** or **finding** row to select it; the inspector switches to
   its editor, and the map and timeline highlight it.
-- The map legend names the marker types: vantage, subject, crossing, incident,
+- The map key names the marker types: vantage, subject, crossing, incident,
   and a red ring for a point that is protected (not safe to publish).
+- Each row says what it is in words: a source's kind, its time, and who may see
+  it ("Photograph · 2021-03-14 02:12 · Public"). A source that is restricted or
+  embargoed reads so in red, with a red rule down the row's edge.
 
 Rows in the rail are keyboard-navigable: tab to a row and press Enter or Space to
 select it.
@@ -176,9 +188,9 @@ Selecting the incident card opens its editor in the inspector:
 
 ---
 
-## Sources (the exhibits)
+## Sources
 
-Press **+ Source** on the rail's Exhibits section to add one, then edit it in the
+Press **Add source** on the rail's Sources section to add one, then edit it in the
 inspector.
 
 ![A source selected: the source editor, with private fields marked as held back, and the source's vantage ray highlighted on the map](images/02-source-editor.png)
@@ -282,7 +294,7 @@ This is the signature move. With two or more vantages placed and aimed, their
 rays are drawn across the map, and where they cross, the tool computes a **fix**:
 a candidate location for the common subject or the incident.
 
-The crossing card reports:
+The **Crossing** section, in the rail under the incident, reports:
 
 - **Fix**: the candidate coordinates.
 - **Angle** and **strength**: how squarely the rays cross. Rays meeting near a
@@ -296,7 +308,7 @@ The crossing card reports:
   crossing angle stretches the ellipse along the rays: an elongated region is
   the geometry warning you, not a rendering flourish.
 
-From the card you can **Adopt as incident place** (set the incident's location to
+From there you can **Adopt as incident place** (set the incident's location to
 the fix) or **Set as subject** for the selected source. The language is
 deliberate: the readout calls this a *planar resection at incident scale, a
 defensible candidate, not a verified geolocation*, and that caution travels into
@@ -308,14 +320,20 @@ the published artifact.
 
 The map carries its own small toolkit, added in 1.3.0.
 
-**Basemap.** The picker at the top right chooses the ground: **Satellite** (Esri
+The map's controls sit in one strip along its top edge, so nothing floats over
+the sightlines: the search box, the **Ground** control, **Measure**, and
+**Sun**. The key sits at the bottom left.
+
+**Basemap.** The **Ground** control opens a short list of grounds: **Satellite** (Esri
 World Imagery, tokenless, the default), **Streets** (OpenStreetMap), **Topo**
 (Esri topographic with hillshade), **Grid** (the offline forensic graticule;
 nothing is fetched), or **File** (a local `.pmtiles` basemap; nothing is
-fetched). A **Labels** toggle overlays place names on the online grounds; the
-offline Grid and File grounds ignore it, so they stay fetch-free.
+fetched). **Place labels** overlays place names on the online grounds; on the
+offline Grid and File grounds it is switched off, so they stay fetch-free. The
+marks change colour with the ground: light over satellite imagery, violet and
+raspberry over the light grounds, so they stay legible on both.
 
-**Dated imagery.** With Satellite active, the **Imagery** menu switches from the
+**Dated imagery.** With Satellite active, the **Imagery date** choice in the Ground list switches from the
 live mosaic to a dated release of the Esri World Imagery Wayback archive. A
 photograph claimed to show 2021 can be read against imagery from 2021, which is
 often the whole point.
@@ -324,9 +342,10 @@ often the whole point.
 `lat, lng` resolves locally with no network call; a place name is sent to the
 Nominatim (OpenStreetMap) geocoder, and picking a result flies the map there.
 
-**Measure.** The Measure button starts a path: click to add points, and the
-readout gives the running distance in metres; a third point closes the figure
-and adds its area. Undo, Clear, and Done are in the readout. Measurements are a
+**Measure.** The Measure button starts a path: click to add points, and a small
+panel gives the running distance in metres; a third point closes the figure
+and adds its area. Undo, Clear, and Done are in the panel; press Measure again to
+close it. Measurements are a
 reading aid; they are not saved to the project.
 
 **Sun and shadow.** The Sun button opens a solar panel for the incident place
@@ -374,7 +393,7 @@ two-sigma band, and each shared event as a line across the tracks it was read in
 
 ### Sync events and readings
 
-Press **+ Event** on the rail's Sync events section. An event has a label, how it
+Press **Add event** on the rail's Sync events section. An event has a label, how it
 was observed (seen, heard, or both), and a set of **readings**, one per source:
 
 - **At (in media).** Where the moment falls in that source's media, as seconds or
@@ -449,7 +468,7 @@ withheld vantage. The artifact's disclosure says how many readings were withheld
 
 ## Findings
 
-Press **+ Finding** on the rail's Findings section. A finding is the claim the
+Press **Add finding** on the rail's Findings section. A finding is the claim the
 reconstruction supports, and it must cite its evidence.
 
 ![A finding selected: its statement, certainty, and the sources it cites](images/03-finding.png)
@@ -493,7 +512,7 @@ boundary.
 
 ## Publishing
 
-**Publish** in the topbar runs the project through the consent boundary and opens
+**Publish** in the top bar runs the project through the consent boundary and opens
 a dialog that shows, side by side:
 
 - **What publishes**: how many sources and findings survive, out of the totals.
@@ -506,40 +525,44 @@ a dialog that shows, side by side:
 
 **Download .html** gives you a single self-contained file: the site map with the
 vantages, subjects, and crossing; the chronology; the findings with their
-citations; the exhibits with their hashes; and a consent disclosure listing
+citations; the sources with their hashes; and a consent disclosure listing
 exactly what was removed. It opens offline and hosts anywhere. **Print dossier**
 prints the same artifact through a print stylesheet.
 
-![The published artifact: a single self-contained HTML file with the site map, chronology, findings, exhibits, and the consent disclosure](images/05-published-artifact.png)
+![The published artifact: a single self-contained HTML file with the site map, chronology, findings, sources, and the consent disclosure](images/05-published-artifact.png)
 
 ---
 
 ## Saving and sharing projects
 
-- **Export** saves the whole project as a single `.sightlines.json` file, so it
-  round-trips exactly, media included.
-- **Import** loads a project file back, replacing the current one.
-- **Geo** exports the placed points (the incident place, subjects, camera
+All three are in the **Case** menu.
+
+- **Save project file** saves the whole project as a single `.sightlines.json`
+  file, so it round-trips exactly, media included.
+- **Open project file** loads a project file back, replacing the current one.
+- **Export places** exports the placed points (the incident place, subjects, camera
   vantages with their bearings, the resection crossing, and located findings) as
   **GeoJSON** or **CSV** for QGIS and other mapping tools. Coordinates are
   written in full, so this is for your own use, not the consent-cleared
   publication.
 
-Exporting is also how you move an investigation between machines or hand it to a
+Saving a project file is also how you move an investigation between machines or hand it to a
 collaborator.
 
 ---
 
-## Starting over: New and Reset
+## Starting over: a new investigation, or the sample
 
-- **New** starts an empty investigation. It asks you to confirm in two steps
-  (press once to arm, again to confirm), because it discards the current project;
-  export first if you want to keep it.
-- **Reset** replaces the current project with the fictional sample, the same
-  two-step confirm.
+Both are in the **Case** menu.
 
-Both confirm in the toolbar itself rather than through a browser dialog, so they
-work in an installed app and tell you the outcome.
+- **New investigation** starts an empty investigation. Because it discards the
+  current project, it asks you to confirm first; save the project file if you
+  want to keep it.
+- **Reset to the sample** replaces the current project with the fictional
+  sample, after the same confirmation.
+
+Both confirm in the app itself rather than through a browser dialog, so they
+work in an installed app, and the readout reports the outcome.
 
 ---
 

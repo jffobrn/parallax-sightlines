@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
 import {
   APP_NAME,
   SUITE_NAME,
@@ -9,11 +10,29 @@ import {
 } from '../core'
 import { useStore } from '../state/store'
 import { useCursorElevation } from '../state/useCursorElevation'
-import { Count } from '../components/ui'
+import { setThemePref, useThemePref, type ThemePref } from '../state/theme'
+import { Count, Dir, Menu, type MenuEntry } from '../components/ui'
 import { downloadJson, readFileText, slugify } from '../lib/download'
 import { PublishDialog } from '../publish/PublishDialog'
 import { AboutDialog } from './AboutDialog'
 import { GeoDataDialog } from './GeoDataDialog'
+
+const GUIDE_URL = 'https://github.com/jffobrn/parallax-sightlines/blob/main/docs/GUIDE.md'
+
+type Confirm = 'new' | 'reset' | null
+
+const CONFIRM_COPY: Record<'new' | 'reset', { title: string; body: string; action: string }> = {
+  new: {
+    title: 'Start a new investigation?',
+    body: 'The current investigation is replaced by an empty one. Save it first to keep it.',
+    action: 'Start new',
+  },
+  reset: {
+    title: 'Reset to the sample?',
+    body: 'The current investigation is replaced by the fictional sample. Save it first to keep it.',
+    action: 'Reset to the sample',
+  },
+}
 
 export function Toolbar() {
   const project = useStore((s) => s.project)
@@ -22,13 +41,13 @@ export function Toolbar() {
   const adoptProject = useStore((s) => s.adoptProject)
   const resetToSample = useStore((s) => s.resetToSample)
   const newBlankProject = useStore((s) => s.newBlankProject)
+  const themePref = useThemePref()
 
   const [publishOpen, setPublishOpen] = useState(false)
   const [geoOpen, setGeoOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [confirm, setConfirm] = useState<Confirm>(null)
   const [msg, setMsg] = useState<string | null>(null)
-  const [armed, setArmed] = useState<'reset' | 'new' | null>(null)
-  const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const importInput = useRef<HTMLInputElement | null>(null)
 
   const flash = (m: string) => {
@@ -55,77 +74,80 @@ export function Toolbar() {
     }
   }
 
-  // New and Reset both discard the current project, so each asks to confirm. We
-  // do this in-app (a two-step button) rather than with window.confirm, which
-  // some browsers and installed PWAs suppress, and we surface the outcome, which
-  // a bare `void` would have swallowed. Only one action is armed at a time.
-  const armOrRun = (kind: 'reset' | 'new', run: () => Promise<void>, ok: string) => {
-    if (armed !== kind) {
-      setArmed(kind)
-      if (armTimer.current) clearTimeout(armTimer.current)
-      armTimer.current = setTimeout(() => setArmed(null), 4000)
-      return
-    }
-    if (armTimer.current) clearTimeout(armTimer.current)
-    setArmed(null)
+  // New and Reset both discard the current project, so each asks to confirm in
+  // an in-app dialog (window.confirm is suppressed by some browsers and
+  // installed PWAs), and the outcome is reported either way.
+  const runConfirmed = () => {
+    const kind = confirm
+    setConfirm(null)
+    if (!kind) return
+    const run = kind === 'new' ? newBlankProject : resetToSample
     run()
-      .then(() => flash(ok))
+      .then(() => flash(kind === 'new' ? 'New blank investigation.' : 'Reset to the sample.'))
       .catch((e) => flash(e instanceof Error ? e.message : 'Action failed.'))
   }
-  const reset = () => armOrRun('reset', resetToSample, 'Reset to the sample.')
-  const newBlank = () => armOrRun('new', newBlankProject, 'New blank investigation.')
 
-  const armedStyle = {
-    background: 'var(--alert-wash)',
-    borderColor: 'var(--alert-dim)',
-    color: 'var(--alert-bright)',
-  }
+  const theme = (pref: ThemePref, label: string): MenuEntry => ({
+    label,
+    checked: themePref === pref,
+    onSelect: () => setThemePref(pref),
+  })
+
+  const caseEntries: MenuEntry[] = [
+    { label: 'New investigation', onSelect: () => setConfirm('new') },
+    { label: 'Open project file', onSelect: () => importInput.current?.click() },
+    { label: 'Save project file', onSelect: () => void exportJson() },
+    { label: 'Export places', hint: 'GeoJSON, CSV', onSelect: () => setGeoOpen(true) },
+    { separator: true, label: '' },
+    { label: 'Reset to the sample', danger: true, onSelect: () => setConfirm('reset') },
+    { separator: true, label: '' },
+    { heading: true, label: 'Appearance' },
+    theme('system', 'Match the system'),
+    theme('light', 'Light'),
+    theme('dark', 'Dark'),
+  ]
+
+  const helpEntries: MenuEntry[] = [
+    { label: `About ${APP_NAME}`, onSelect: () => setAboutOpen(true) },
+    { label: "Researcher's guide", hint: 'opens online', onSelect: () => window.open(GUIDE_URL, '_blank', 'noopener') },
+  ]
 
   const publicCount = project.sources.filter((s) => s.consent === 'public').length
+  const caseTitle = project.incident.titles[0]?.text
 
   return (
     <div className="topbar">
       <span className="wordmark">
-        <span className="suite">{SUITE_NAME}</span>
-        <span className="sep">//</span>
-        {APP_NAME}
+        {SUITE_NAME}
+        <span className="tool">{APP_NAME}</span>
       </span>
+      {caseTitle && (
+        <span className="case-title">
+          <Dir text={caseTitle} />
+        </span>
+      )}
+
+      <div className="topbar-spacer" />
+
+      <div className="readout" aria-live="polite">
+        {msg && <span className="signal">{msg}</span>}
+        <span>
+          <Count n={project.sources.length} noun="source" />, <b>{publicCount}</b> public
+        </span>
+        <span>
+          <Count n={project.findings.length} noun="finding" />
+        </span>
+        <span className="cursor-readout">
+          {cursor ? formatLatLng(cursor.lat, cursor.lng) : ''}
+          {cursor && cursorElev !== null ? `, ${cursorElev} m` : ''}
+        </span>
+      </div>
 
       <div className="btn-row">
-        <button className="btn btn-sm btn-mono btn-primary" onClick={() => setPublishOpen(true)}>
+        <Menu label="Case" entries={caseEntries} />
+        <Menu label="Help" entries={helpEntries} />
+        <button className="btn btn-primary" onClick={() => setPublishOpen(true)}>
           Publish
-        </button>
-        <button className="btn btn-sm btn-mono btn-ghost" onClick={exportJson}>
-          Export
-        </button>
-        <button className="btn btn-sm btn-mono btn-ghost" onClick={() => importInput.current?.click()}>
-          Import
-        </button>
-        <button
-          className="btn btn-sm btn-mono btn-ghost"
-          onClick={() => setGeoOpen(true)}
-          title="Export placed points as GeoJSON or CSV (for QGIS)"
-        >
-          Geo
-        </button>
-        <button
-          className="btn btn-sm btn-mono btn-ghost"
-          onClick={newBlank}
-          title="Start a new, empty investigation (export first to keep this one)"
-          style={armed === 'new' ? armedStyle : undefined}
-        >
-          {armed === 'new' ? 'Confirm new' : 'New'}
-        </button>
-        <button
-          className="btn btn-sm btn-mono btn-ghost"
-          onClick={reset}
-          title="Replace the current investigation with the fictional sample"
-          style={armed === 'reset' ? armedStyle : undefined}
-        >
-          {armed === 'reset' ? 'Confirm reset' : 'Reset'}
-        </button>
-        <button className="btn btn-sm btn-mono btn-ghost" onClick={() => setAboutOpen(true)}>
-          About
         </button>
         <input
           ref={importInput}
@@ -136,24 +158,27 @@ export function Toolbar() {
         />
       </div>
 
-      <div className="topbar-spacer" />
-
-      <div className="readout">
-        {msg && <span className="signal">{msg}</span>}
-        <span>
-          <Count n={project.sources.length} noun="source" />
-        </span>
-        <span>
-          <b>{publicCount}</b> public
-        </span>
-        <span>
-          <Count n={project.findings.length} noun="finding" />
-        </span>
-        <span className="cursor-readout">
-          {cursor ? formatLatLng(cursor.lat, cursor.lng) : '--'}
-          {cursor && cursorElev !== null ? `  ${cursorElev} m` : ''}
-        </span>
-      </div>
+      <Dialog.Root open={confirm !== null} onOpenChange={(o) => !o && setConfirm(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content" style={{ width: 'min(460px, calc(100vw - 32px))' }}>
+            {confirm && (
+              <>
+                <Dialog.Title className="dialog-title">{CONFIRM_COPY[confirm].title}</Dialog.Title>
+                <Dialog.Description className="dialog-desc">{CONFIRM_COPY[confirm].body}</Dialog.Description>
+                <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
+                  <button className="btn" onClick={() => setConfirm(null)}>
+                    Cancel
+                  </button>
+                  <button className="btn btn-danger btn-solid" onClick={runConfirmed}>
+                    {CONFIRM_COPY[confirm].action}
+                  </button>
+                </div>
+              </>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       <PublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
       <GeoDataDialog open={geoOpen} onOpenChange={setGeoOpen} />

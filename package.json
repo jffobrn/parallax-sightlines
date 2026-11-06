@@ -1,7 +1,7 @@
 {
   "name": "sightlines",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "type": "module",
   "description": "Reconstruct a single incident or site in time and space, consent first. The first tool of the Parallax suite.",
   "license": "SEE LICENSE IN LICENSE",
@@ -16,9 +16,7 @@
     "@deck.gl/core": "^9.4.1",
     "@deck.gl/layers": "^9.4.1",
     "@deck.gl/mapbox": "^9.4.1",
-    "@fontsource/archivo": "^5.2.8",
     "@fontsource/noto-naskh-arabic": "^5.0.0",
-    "@fontsource/spline-sans-mono": "^5.2.8",
     "@radix-ui/react-dialog": "^1.1.0",
     "@radix-ui/react-select": "^2.1.0",
     "@radix-ui/react-tooltip": "^1.1.0",

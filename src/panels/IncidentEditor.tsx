@@ -33,7 +33,7 @@ export function IncidentEditor() {
   return (
     <div className="panel-body" style={{ paddingTop: 12 }}>
       <span className="label">Titles</span>
-      <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
+      <p className="faint" style={{ fontSize: 13, margin: '4px 0 8px' }}>
         One per language. Direction is detected per string.
       </p>
       {titles.map((t, i) => (

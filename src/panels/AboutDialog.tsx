@@ -12,9 +12,9 @@ export function AboutDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content className="dialog-content ticks">
+        <Dialog.Content className="dialog-content">
           <Dialog.Title className="dialog-title">
-            {APP_NAME} <span className="faint">// {SUITE_NAME}</span>
+            {APP_NAME} <span className="faint">in {SUITE_NAME}</span>
           </Dialog.Title>
           <Dialog.Description className="dialog-desc">{TAGLINE}</Dialog.Description>
 

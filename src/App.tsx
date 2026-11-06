@@ -22,7 +22,7 @@ function TimelineHead() {
 
   return (
     <div className="timeline-head">
-      <span className="label"><span className="label-num">04</span>Time</span>
+      <h2 className="sec-title">Time</h2>
       <div className="seg" role="group" aria-label="dock view">
         <button type="button" aria-pressed={dockView === 'chronology'} onClick={() => setDockView('chronology')}>
           Chronology
@@ -32,19 +32,19 @@ function TimelineHead() {
         </button>
       </div>
       {dockView === 'chronology' && extent && (
-        <span className="faint mono" style={{ fontSize: 11 }}>
-          {fmtMs(extent[0])} to {fmtMs(extent[1])}
+        <span className="faint" style={{ fontSize: 13 }}>
+          <span className="mono">{fmtMs(extent[0])}</span> to <span className="mono">{fmtMs(extent[1])}</span> UTC
         </span>
       )}
       <div className="topbar-spacer" />
       {dockView === 'clock' ? (
-        <span className="faint" style={{ fontSize: 11 }}>one clock</span>
+        <span className="faint" style={{ fontSize: 13 }}>Sources aligned on shared events</span>
       ) : timeBrush ? (
         <button className="btn btn-sm btn-ghost" onClick={() => setTimeBrush(null)}>
           Clear filter
         </button>
       ) : (
-        <span className="faint" style={{ fontSize: 11 }}>drag to filter</span>
+        <span className="faint" style={{ fontSize: 13 }}>Drag across to filter</span>
       )}
     </div>
   )
@@ -66,7 +66,7 @@ export default function App() {
   if (!ready) {
     return (
       <div className="boot">
-        <div className="boot-mark mono">PARALLAX // SIGHTLINES</div>
+        <div className="boot-mark">Parallax Sightlines</div>
         <div className="faint">Loading local project...</div>
       </div>
     )
@@ -78,7 +78,7 @@ export default function App() {
       <div className="rail">
         <Rail />
       </div>
-      <div className="stage ticks">
+      <div className="stage">
         <MapView />
       </div>
       <div className="timeline-dock">

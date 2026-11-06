@@ -50,14 +50,14 @@ export function SightlineCheck({ vantage, subject }: { vantage: Vantage; subject
     <>
       <div className="divider" />
       <span className="label">Terrain line of sight</span>
-      <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
+      <p className="faint" style={{ fontSize: 13, margin: '4px 0 8px' }}>
         Whether the ground between the vantage and the subject blocks the view.
       </p>
       <button className="btn btn-sm" onClick={run} disabled={busy}>
         {busy ? 'Sampling terrain...' : profile ? 'Re-check' : 'Check line of sight'}
       </button>
       {err && (
-        <p className="alert" style={{ fontSize: 11, marginTop: 6 }}>
+        <p className="alert" style={{ fontSize: 13, marginTop: 6 }}>
           {err}
         </p>
       )}
@@ -91,7 +91,7 @@ export function SightlineCheck({ vantage, subject }: { vantage: Vantage; subject
               </>
             )}
           </dl>
-          <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>
+          <p className="faint" style={{ fontSize: 13, marginTop: 6 }}>
             Terrarium DEM, observer {OBSERVER_M} m above ground, curvature and refraction
             corrected. A screening check, not a survey.
           </p>
@@ -128,18 +128,18 @@ function ProfileChart({ profile, los }: { profile: ElevationProfile; los: LineOf
 
   return (
     <svg className="elev-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="elevation profile">
-      <path d={areaPath} fill="rgba(127,168,191,0.16)" />
-      <path d={terrainPath} fill="none" stroke="#7fa8bf" strokeWidth="1" />
+      <path d={areaPath} style={{ fill: "var(--subject-wash)" }} />
+      <path d={terrainPath} fill="none" style={{ stroke: "var(--subject)" }} strokeWidth="1" />
       <line
         x1={X(0)}
         y1={Y(obsEye)}
         x2={X(profile.totalM)}
         y2={Y(los.targetElev)}
-        stroke={los.clear ? '#9cc98a' : '#e5544b'}
+        style={{ stroke: los.clear ? 'var(--primary)' : 'var(--alert)' }}
         strokeWidth="1.2"
         strokeDasharray={los.clear ? '' : '3 2'}
       />
-      {mark && <circle cx={mark.x} cy={mark.y} r="2.6" fill="#e5544b" />}
+      {mark && <circle cx={mark.x} cy={mark.y} r="2.6" style={{ fill: "var(--alert)" }} />}
     </svg>
   )
 }

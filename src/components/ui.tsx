@@ -1,5 +1,5 @@
 import * as Select from '@radix-ui/react-select'
-import type { KeyboardEvent, ReactNode } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import {
   dirOf,
   type Certainty,
@@ -51,7 +51,7 @@ export function Field({
     <div className="field">
       <label className="label">{label}</label>
       {children}
-      {hint && <span className="faint" style={{ fontSize: 11 }}>{hint}</span>}
+      {hint && <span className="faint" style={{ fontSize: 13 }}>{hint}</span>}
     </div>
   )
 }
@@ -125,7 +125,7 @@ export function Toggle({
       <span className="switch-track">
         <span className="switch-thumb" />
       </span>
-      {label && <span style={{ fontSize: 12 }}>{label}</span>}
+      {label && <span style={{ fontSize: 14 }}>{label}</span>}
     </button>
   )
 }
@@ -146,7 +146,9 @@ export function SelectMenu<T extends string>({
     <Select.Root value={value} onValueChange={(v) => onChange(v as T)}>
       <Select.Trigger className="select-trigger" aria-label={ariaLabel}>
         <Select.Value />
-        <Select.Icon>▾</Select.Icon>
+        <Select.Icon>
+          <span className="select-chevron" aria-hidden="true" />
+        </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
         <Select.Content className="select-content" position="popper" sideOffset={4}>
@@ -163,50 +165,195 @@ export function SelectMenu<T extends string>({
   )
 }
 
+const CONSENT_WORD: Record<Consent, string> = {
+  public: 'Public',
+  restricted: 'Restricted',
+  embargoed: 'Embargoed',
+}
+const CERTAINTY_WORD: Record<Certainty, string> = {
+  attested: 'Attested',
+  probable: 'Probable',
+  uncertain: 'Uncertain',
+}
+
+/** Consent as a word in the running text; withheld states read in the alert colour. */
 export function ConsentBadge({ consent }: { consent: Consent }) {
-  return <span className={`badge badge-${consent}`}>{consent}</span>
+  return <span className={`badge badge-${consent}`}>{CONSENT_WORD[consent]}</span>
 }
 
 export function CertaintyBadge({ certainty }: { certainty: Certainty }) {
-  return <span className={`badge badge-${certainty}`}>{certainty}</span>
+  return <span className={`badge badge-${certainty}`}>{CERTAINTY_WORD[certainty]}</span>
 }
 
 const KIND_LABEL: Record<SourceKind, string> = {
-  photograph: 'PHOTO',
-  'video-link': 'VIDEO',
-  document: 'DOC',
-  testimony: 'TESTIMONY',
-  audio: 'AUDIO',
+  photograph: 'Photograph',
+  'video-link': 'Video',
+  document: 'Document',
+  testimony: 'Testimony',
+  audio: 'Audio',
+}
+
+export function kindLabel(kind: SourceKind): string {
+  return KIND_LABEL[kind]
 }
 
 export function KindBadge({ kind }: { kind: SourceKind }) {
+  return <span>{KIND_LABEL[kind]}</span>
+}
+
+/** Words joined with a middle dot, skipping the empty ones: "Photograph · Public". */
+export function Meta({ parts }: { parts: ReactNode[] }) {
+  const kept = parts.filter((p) => p !== null && p !== undefined && p !== false && p !== '')
   return (
-    <span className="row-sub" style={{ margin: 0 }}>
-      <span className="kind-dot" />
-      {KIND_LABEL[kind]}
-    </span>
+    <>
+      {kept.map((p, i) => (
+        <span key={i}>
+          {i > 0 && ' · '}
+          {p}
+        </span>
+      ))}
+    </>
+  )
+}
+
+const CONSENT_MEANING: Record<Consent, string> = {
+  public: 'Published with the reconstruction.',
+  restricted: 'Kept in the project; never published.',
+  embargoed: 'Held for the account only; never published.',
+}
+
+/** Consent as a choice, each option with its meaning beside it. */
+export function ConsentChoice({ value, onChange }: { value: Consent; onChange: (c: Consent) => void }) {
+  return (
+    <div className="choice" role="radiogroup" aria-label="Who may see this">
+      {(Object.keys(CONSENT_WORD) as Consent[]).map((c) => (
+        <button
+          key={c}
+          type="button"
+          role="radio"
+          className="choice-item"
+          aria-checked={value === c}
+          data-tone={c === 'public' ? undefined : 'alert'}
+          onClick={() => onChange(c)}
+        >
+          <span className="choice-dot" aria-hidden="true" />
+          <span>
+            <span className="choice-name">{CONSENT_WORD[c]}</span>
+            <span className="choice-desc">{CONSENT_MEANING[c]}</span>
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export interface MenuEntry {
+  label: string
+  hint?: string
+  onSelect?: () => void
+  checked?: boolean
+  danger?: boolean
+  heading?: boolean
+  separator?: boolean
+}
+
+/**
+ * A small accessible menu: a button that opens a list of actions. Escape and a
+ * click outside close it; arrow keys move between items.
+ */
+export function Menu({ label, entries }: { label: string; entries: MenuEntry[] }) {
+  const [open, setOpen] = useState(false)
+  const wrap = useRef<HTMLDivElement | null>(null)
+  const button = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => {
+      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    const first = wrap.current?.querySelector<HTMLButtonElement>('.menu-item')
+    first?.focus()
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [open])
+
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setOpen(false)
+      button.current?.focus()
+      return
+    }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    e.preventDefault()
+    const items = Array.from(wrap.current?.querySelectorAll<HTMLButtonElement>('.menu-item') ?? [])
+    const i = items.indexOf(document.activeElement as HTMLButtonElement)
+    const next = e.key === 'ArrowDown' ? (i + 1) % items.length : (i - 1 + items.length) % items.length
+    items[next]?.focus()
+  }
+
+  return (
+    <div className="menu-wrap" ref={wrap} onKeyDown={onKey}>
+      <button
+        ref={button}
+        type="button"
+        className="btn"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {label}
+      </button>
+      {open && (
+        <div className="menu" role="menu" aria-label={label}>
+          {entries.map((e, i) =>
+            e.separator ? (
+              <div key={i} className="menu-sep" role="separator" />
+            ) : e.heading ? (
+              <div key={i} className="menu-heading">
+                {e.label}
+              </div>
+            ) : (
+              <button
+                key={i}
+                type="button"
+                role={e.checked === undefined ? 'menuitem' : 'menuitemradio'}
+                aria-checked={e.checked}
+                className={`menu-item${e.danger ? ' danger' : ''}`}
+                onClick={() => {
+                  setOpen(false)
+                  e.onSelect?.()
+                }}
+              >
+                <span>{e.label}</span>
+                {e.hint && <span className="hint">{e.hint}</span>}
+              </button>
+            ),
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
 // Shared option lists.
 export const CONSENT_OPTIONS: EnumOption<Consent>[] = [
-  { value: 'public', label: 'PUBLIC' },
-  { value: 'restricted', label: 'RESTRICTED' },
-  { value: 'embargoed', label: 'EMBARGOED' },
+  { value: 'public', label: 'Public' },
+  { value: 'restricted', label: 'Restricted' },
+  { value: 'embargoed', label: 'Embargoed' },
 ]
 
 export const CERTAINTY_OPTIONS: EnumOption<Certainty>[] = [
-  { value: 'attested', label: 'ATTESTED' },
-  { value: 'probable', label: 'PROBABLE' },
-  { value: 'uncertain', label: 'UNCERTAIN' },
+  { value: 'attested', label: 'Attested' },
+  { value: 'probable', label: 'Probable' },
+  { value: 'uncertain', label: 'Uncertain' },
 ]
 
 export const PRECISION_OPTIONS = [
-  { value: 'second', label: 'SEC' },
-  { value: 'minute', label: 'MIN' },
-  { value: 'hour', label: 'HOUR' },
-  { value: 'day', label: 'DAY' },
-  { value: 'approximate', label: 'APPROX' },
+  { value: 'second', label: 'Second' },
+  { value: 'minute', label: 'Minute' },
+  { value: 'hour', label: 'Hour' },
+  { value: 'day', label: 'Day' },
+  { value: 'approximate', label: 'Approximate' },
 ] as const
 
 export const KIND_OPTIONS: EnumOption<SourceKind>[] = [

@@ -46,7 +46,7 @@ export function MediaClockPanel({ source }: { source: Source }) {
     <>
       <div className="divider" />
       <span className="label">Media clock</span>
-      <p className="faint" style={{ fontSize: 11, margin: '4px 0 8px' }}>
+      <p className="faint" style={{ fontSize: 13, margin: '4px 0 8px' }}>
         For clips aligned on shared events. A photograph is media of zero length.
       </p>
       <Field label="Duration (m:ss)">

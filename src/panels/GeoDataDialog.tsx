@@ -23,7 +23,7 @@ export function GeoDataDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content className="dialog-content ticks">
+        <Dialog.Content className="dialog-content">
           <Dialog.Title className="dialog-title">
             Map data <span className="faint">// GeoJSON and CSV</span>
           </Dialog.Title>

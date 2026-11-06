@@ -14,34 +14,13 @@ import {
 } from '../core'
 import { eventWedges, originZones } from '../lib/zones'
 import type { Graticule } from './basemap'
+import { mapPalette, type Ground } from './palette'
 
 const RAY_LEN_M = 520
 const CONE_LEN_M = 360
 
 type RGBA = [number, number, number, number]
 
-const C = {
-  minor: [40, 48, 60, 110] as RGBA,
-  major: [56, 66, 79, 170] as RGBA,
-  subject: [127, 168, 191, 255] as RGBA,
-  subjectLine: [188, 214, 228, 255] as RGBA,
-  vantage: [216, 210, 192, 255] as RGBA,
-  vantageLine: [245, 242, 230, 255] as RGBA,
-  ray: [216, 210, 192, 140] as RGBA,
-  raySel: [255, 193, 99, 235] as RGBA,
-  cone: [216, 210, 192, 16] as RGBA,
-  coneSel: [243, 169, 60, 28] as RGBA,
-  cross: [243, 169, 60, 255] as RGBA,
-  crossRing: [243, 169, 60, 95] as RGBA,
-  place: [167, 176, 189, 255] as RGBA,
-  alert: [229, 84, 75, 255] as RGBA,
-  sel: [255, 193, 99, 255] as RGBA,
-  wedge: [243, 169, 60, 14] as RGBA,
-  wedgeSel: [243, 169, 60, 34] as RGBA,
-  wedgeLine: [243, 169, 60, 70] as RGBA,
-  zone: [255, 193, 99, 60] as RGBA,
-  zoneLine: [255, 193, 99, 255] as RGBA,
-}
 
 export interface BuildLayersArgs {
   project: Project
@@ -49,6 +28,8 @@ export interface BuildLayersArgs {
   hoveredId: string | null
   resection: ResectionSet
   graticule: Graticule
+  /** Whether the ground under the marks is dark (imagery) or light. */
+  ground?: Ground
   /** The sync event in focus: its bearing bands and zone are emphasised. */
   selectedSyncEventId?: string | null
   onPickSource?: (id: string) => void
@@ -63,6 +44,7 @@ interface PointDatum {
 
 export function buildMapLayers(args: BuildLayersArgs): Layer[] {
   const { project, selectedSourceId, hoveredId, resection, graticule } = args
+  const C = mapPalette(args.ground ?? 'dark')
   const isEmph = (id: string) => id === selectedSourceId || id === hoveredId
 
   const rays: {

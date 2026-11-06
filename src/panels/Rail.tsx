@@ -8,7 +8,8 @@ import {
 } from '../core'
 import { useStore } from '../state/store'
 import { solveClocks } from '../lib/clock'
-import { CertaintyBadge, ConsentBadge, Dir, KindBadge, rowButton } from '../components/ui'
+import { CertaintyBadge, ConsentBadge, Dir, kindLabel, Meta, rowButton } from '../components/ui'
+import { CrossingCard } from '../map/CrossingCard'
 
 export function Rail() {
   const project = useStore((s) => s.project)
@@ -54,6 +55,9 @@ export function Rail() {
     addFinding(f)
   }
 
+  const withheld = (s: Source) => s.consent !== 'public'
+  const typeLabel = incident.type ? incident.type.charAt(0).toUpperCase() + incident.type.slice(1).replace(/-/g, ' ') : ''
+
   return (
     <>
       {/* Incident summary / open incident editor */}
@@ -62,10 +66,7 @@ export function Rail() {
         data-active={editingIncident}
         onClick={() => select(null)}
       >
-        <div className="between">
-          <span className="label"><span className="label-num">01</span>Incident</span>
-          <span className="tag">{incident.type}</span>
-        </div>
+        <h2 className="sec-title">Incident</h2>
         <div className="incident-titles">
           {incident.titles.map((t, i) => (
             <div key={i} className={i === 0 ? 'incident-title' : 'incident-title-alt'}>
@@ -73,18 +74,29 @@ export function Rail() {
             </div>
           ))}
         </div>
-        <div className="row-sub" style={{ padding: 0 }}>
-          {incident.window.start ? formatDateTimeShort(incident.window.start, incident.window.precision) : 'no window'}
-          {incident.window.end ? ` -> ${formatDateTimeShort(incident.window.end, incident.window.precision)}` : ''}
+        <div className="row-sub wrap" style={{ padding: 0 }}>
+          <Meta
+            parts={[
+              typeLabel,
+              incident.window.start
+                ? `${formatDateTimeShort(incident.window.start, incident.window.precision)}${
+                    incident.window.end ? ` to ${formatDateTimeShort(incident.window.end, incident.window.precision)}` : ''
+                  }`
+                : 'No time window yet',
+            ]}
+          />
         </div>
       </button>
 
-      {/* Exhibits */}
+      <CrossingCard />
+
+      {/* Sources */}
       <div className="panel">
         <div className="panel-head">
-          <span className="label"><span className="label-num">02</span>Exhibits</span>
-          <span className="faint mono" style={{ fontSize: 11 }}>{project.sources.length}</span>
-          <button className="btn btn-sm btn-ghost" onClick={onAddSource}>+ Source</button>
+          <h2 className="sec-title">
+            Sources <span className="count">{project.sources.length}</span>
+          </h2>
+          <button className="btn-link" onClick={onAddSource}>Add source</button>
         </div>
         <div className="list">
           {project.sources.length === 0 && <div className="empty">No sources yet.</div>}
@@ -94,6 +106,7 @@ export function Rail() {
               className="row"
               data-selected={s.id === selectedSourceId}
               data-hovered={s.id === hoveredId && s.id !== selectedSourceId}
+              data-withheld={withheld(s)}
               {...rowButton(() => select(s.id))}
               onMouseEnter={() => hover(s.id)}
               onMouseLeave={() => hover(null)}
@@ -101,11 +114,13 @@ export function Rail() {
               <div className="row-main">
                 <div className="row-title"><Dir text={s.title} /></div>
                 <div className="row-sub">
-                  <KindBadge kind={s.kind} />
-                  <ConsentBadge consent={s.consent} />
-                  {s.vantage && <span title="has a vantage">V</span>}
-                  {s.subject && <span title="has a subject">S</span>}
-                  {s.datetime && <span>{formatDateTimeShort(s.datetime.value, s.datetime.precision)}</span>}
+                  <Meta
+                    parts={[
+                      kindLabel(s.kind),
+                      s.datetime ? formatDateTimeShort(s.datetime.value, s.datetime.precision) : null,
+                      <ConsentBadge key="c" consent={s.consent} />,
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -116,9 +131,10 @@ export function Rail() {
       {/* Findings */}
       <div className="panel">
         <div className="panel-head">
-          <span className="label"><span className="label-num">03</span>Findings</span>
-          <span className="faint mono" style={{ fontSize: 11 }}>{project.findings.length}</span>
-          <button className="btn btn-sm btn-ghost" onClick={onAddFinding}>+ Finding</button>
+          <h2 className="sec-title">
+            Findings <span className="count">{project.findings.length}</span>
+          </h2>
+          <button className="btn-link" onClick={onAddFinding}>Add finding</button>
         </div>
         <div className="list">
           {project.findings.length === 0 && <div className="empty">No findings yet.</div>}
@@ -135,8 +151,12 @@ export function Rail() {
               <div className="row-main">
                 <div className="row-title" style={{ whiteSpace: 'normal' }}>{f.statement}</div>
                 <div className="row-sub">
-                  <CertaintyBadge certainty={f.certainty} />
-                  <span>{f.supportedBy.length} cited</span>
+                  <Meta
+                    parts={[
+                      <CertaintyBadge key="c" certainty={f.certainty} />,
+                      `${f.supportedBy.length} source${f.supportedBy.length === 1 ? '' : 's'} cited`,
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -147,9 +167,10 @@ export function Rail() {
       {/* Sync events: shared moments that put the sources on one clock */}
       <div className="panel">
         <div className="panel-head">
-          <span className="label"><span className="label-num">05</span>Sync events</span>
-          <span className="faint mono" style={{ fontSize: 11 }}>{project.syncEvents.length}</span>
-          <button className="btn btn-sm btn-ghost" onClick={onAddSyncEvent}>+ Event</button>
+          <h2 className="sec-title">
+            Sync events <span className="count">{project.syncEvents.length}</span>
+          </h2>
+          <button className="btn-link" onClick={onAddSyncEvent}>Add event</button>
         </div>
         <div className="list">
           {project.syncEvents.length === 0 && (
@@ -157,12 +178,14 @@ export function Rail() {
           )}
           {project.syncEvents.map((e) => {
             const t = clocks.events[e.id]
+            const flagged = flaggedEvents.has(e.id)
             return (
               <div
                 key={e.id}
                 className="row"
                 data-selected={e.id === selectedSyncEventId}
                 data-hovered={e.id === hoveredId && e.id !== selectedSyncEventId}
+                data-withheld={flagged}
                 {...rowButton(() => selectSyncEvent(e.id))}
                 onMouseEnter={() => hover(e.id)}
                 onMouseLeave={() => hover(null)}
@@ -170,10 +193,14 @@ export function Rail() {
                 <div className="row-main">
                   <div className="row-title"><Dir text={e.label || 'Untitled event'} /></div>
                   <div className="row-sub">
-                    <span>{e.kind}</span>
-                    <span>{e.observations.length} reading{e.observations.length === 1 ? '' : 's'}</span>
-                    {t?.anchored && <span className="mono">{new Date(t.timeSec * 1000).toISOString().slice(11, 19)}</span>}
-                    {flaggedEvents.has(e.id) && <span className="alert">inconsistent</span>}
+                    <Meta
+                      parts={[
+                        e.kind === 'sound' ? 'Heard' : e.kind === 'visual' ? 'Seen' : 'Seen and heard',
+                        `${e.observations.length} reading${e.observations.length === 1 ? '' : 's'}`,
+                        t?.anchored ? <span key="t" className="mono">{new Date(t.timeSec * 1000).toISOString().slice(11, 19)}</span> : null,
+                        flagged ? <span key="f" className="alert">Inconsistent</span> : null,
+                      ]}
+                    />
                   </div>
                 </div>
               </div>

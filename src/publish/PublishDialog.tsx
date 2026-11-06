@@ -58,7 +58,7 @@ export function PublishDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content className="dialog-content ticks" style={{ width: 'min(1040px, calc(100vw - 32px))' }}>
+        <Dialog.Content className="dialog-content" style={{ width: 'min(1040px, calc(100vw - 32px))' }}>
           <Dialog.Title className="dialog-title">Publish investigation</Dialog.Title>
           <Dialog.Description className="dialog-desc">
             Everything below passed through the consent boundary. Embargoed and
@@ -96,14 +96,14 @@ export function PublishDialog({
                     Print dossier
                   </button>
                 </div>
-                <p className="faint" style={{ fontSize: 11, marginTop: 10 }}>
+                <p className="faint" style={{ fontSize: 13, marginTop: 10 }}>
                   One self-contained file: map, chronology, exhibits, findings.
                   Hosts anywhere or opens offline.
                 </p>
               </div>
 
-              <div className="publish-preview ticks">
-                <div className="label" style={{ padding: '6px 8px' }}>Preview = artifact</div>
+              <div className="publish-preview">
+                <div className="label" style={{ padding: '8px 12px' }}>Preview of the published file</div>
                 <iframe
                   ref={frameRef}
                   title="Published investigation preview"
