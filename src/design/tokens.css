@@ -1,224 +1,190 @@
 /*
- * Parallax design tokens (shared core).
+ * Parallax design tokens (shared core): Workbench.
  *
- * Colour field: the agency's identity carried into its instruments. A lilac
- * field frames the work; the working surfaces are white; deep violet marks the
- * selection and the one primary action; raspberry marks what the evidence
- * converges on (the crossing, findings). Red is kept for protection and
- * danger. Night field is the dark counterpart in the same violet, for imagery
- * and night work. Syne carries the voice; IBM Plex Mono carries only data.
- *
- * Light by default; dark follows the system unless the viewer chooses, which
- * sets data-theme on the root.
+ * The instruments are working software, so they look like it: neutral warm
+ * greys, dense but legible type, panes with plain headers, and colour only
+ * where it means something. Violet is the selection thread; raspberry marks
+ * what the evidence converges on (the crossing, findings); red is kept for
+ * protection and danger. Archivo carries the interface; IBM Plex Mono carries
+ * only data. Light by default; dark follows the system unless the viewer
+ * chooses, which sets data-theme on the root.
  */
 
-@font-face {
-  font-family: 'Syne';
-  src: url('./fonts/syne-latin.woff2') format('woff2');
-  font-weight: 400 800;
-  font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
-    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Syne';
-  src: url('./fonts/syne-latin-ext.woff2') format('woff2');
-  font-weight: 400 800;
-  font-display: swap;
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F,
-    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Plex Mono';
-  src: url('./fonts/plex-mono-400.woff2') format('woff2');
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Plex Mono';
-  src: url('./fonts/plex-mono-500.woff2') format('woff2');
-  font-weight: 500 600;
-  font-display: swap;
-}
+@font-face { font-family: 'Archivo'; src: url('./fonts/archivo-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Archivo'; src: url('./fonts/archivo-500.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Archivo'; src: url('./fonts/archivo-600.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Archivo'; src: url('./fonts/archivo-700.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Plex Mono'; src: url('./fonts/plex-mono-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Plex Mono'; src: url('./fonts/plex-mono-500.woff2') format('woff2'); font-weight: 500 600; font-display: swap; }
 
 :root {
   color-scheme: light;
 
   /* Type */
-  --font-sans: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
-  --font-display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
-  --font-arabic: 'Noto Naskh Arabic', 'Syne', serif;
+  --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-arabic: 'Noto Naskh Arabic', 'Archivo', serif;
 
-  /* Colour field (light) */
-  --field: #ead2f7;
-  --field-2: #e1c3f1;
-  --surface: #ffffff;
-  --surface-2: #fbf7fd;
-  --surface-3: #f4eaf8;
-  --map-ground: #f3ebf6;
-
-  /* Legacy surface names, mapped onto the field and surfaces. */
-  --bg: var(--field);
-  --bg-1: var(--surface);
-  --bg-2: var(--surface);
-  --bg-3: var(--surface-3);
-  --bg-4: #ecdcf3;
-
-  --line: #e6d4ee;
-  --line-2: #d8bfe5;
-  --line-strong: #b996cc;
-
-  --text: #160b18;
-  --text-2: #4b3b4f;
-  --text-3: #66546b;
-  --text-faint: #8d7c92;
-
-  /* Primary: deep violet. The selection, the active state, the one primary action. */
+  --field: #e4e2dc;
+  --field-2: #d9d6ce;
+  --surface: #f3f2ee;
+  --surface-2: #f3f2ee;
+  --surface-3: #e9e7e1;
+  --panel-head: #e9e7e1;
+  --input: #ffffff;
+  --map-ground: #e8e6e0;
+  --bg-4: #dedbd3;
+  --line: #e1ded6;
+  --line-2: #cfccc3;
+  --line-strong: #b3afa4;
+  --text: #1b1a18;
+  --text-2: #4a4842;
+  --text-3: #66635b;
+  --text-faint: #8f8b82;
   --primary: #5a1666;
   --primary-ink: #ffffff;
   --primary-hover: #6e2280;
-  --select: #5a1666;
-  --select-ink: #ffffff;
-
-  /* Kept under the old names so every rule keeps working. */
+  --select: #e7d6ee;
+  --select-ink: #1b1a18;
+  --select-line: #5a1666;
   --signal: #5a1666;
   --signal-bright: #5a1666;
   --signal-dim: #9a6aa6;
   --signal-wash: rgba(90, 22, 102, 0.07);
   --signal-line: rgba(90, 22, 102, 0.32);
-
-  /* Mark: raspberry. What the evidence converges on: the crossing, findings. */
   --mark: #c2185b;
   --mark-wash: rgba(194, 24, 91, 0.08);
-
-  /* Alert / protection: embargo, unsafe coordinates, destructive actions only. */
   --alert: #b3261e;
   --alert-bright: #b3261e;
   --alert-dim: #e2a29d;
-  --alert-wash: #fbeeed;
-
-  /* Map roles, as CSS swatches for the key. The map itself keys its colours
-     to the ground (see map/palette.ts). */
+  --alert-wash: #f8e9e7;
   --subject: #5a1666;
   --subject-wash: rgba(90, 22, 102, 0.12);
   --vantage: #ffffff;
   --ray: rgba(90, 22, 102, 0.5);
+  --shadow: 0 4px 14px rgba(27, 26, 24, 0.12);
+  --shadow-pop: 0 10px 30px rgba(27, 26, 24, 0.18);
+
+  /* Legacy surface names */
+  --bg: var(--field);
+  --bg-1: var(--surface);
+  --bg-2: var(--input);
+  --bg-3: var(--surface-3);
 
   /* Geometry */
-  --r-sm: 4px;
-  --r: 6px;
-  --r-lg: 10px;
+  --r-sm: 3px;
+  --r: 4px;
+  --r-lg: 6px;
 
-  --shadow: 0 6px 20px rgba(22, 11, 24, 0.1);
-  --shadow-pop: 0 14px 40px rgba(22, 11, 24, 0.16);
-
-  /* Spacing scale */
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
   --s4: 16px;
-  --s5: 24px;
-  --s6: 32px;
-  --s7: 48px;
+  --s5: 20px;
+  --s6: 28px;
+  --s7: 40px;
 
-  /* Type scale: nothing that carries meaning below 12px. */
-  --t-micro: 12px;
+  /* Type scale: dense, never below 11px for meaning. */
+  --t-micro: 11px;
   --t-xs: 12px;
-  --t-sm: 13px;
-  --t-base: 14px;
-  --t-md: 15px;
-  --t-lg: 17px;
-  --t-xl: 20px;
-  --t-2xl: 26px;
-
+  --t-sm: 12px;
+  --t-base: 13px;
+  --t-md: 14px;
+  --t-lg: 15px;
+  --t-xl: 17px;
+  --t-2xl: 22px;
   --track: 0;
 
-  /* Layers */
   --z-panel: 10;
   --z-overlay: 50;
   --z-dialog: 100;
   --z-toast: 200;
 }
 
-/* Night field (dark): the same violet, never dev-tool blue-black. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --field: #1c1120;
-    --field-2: #2a1a2f;
-    --surface: #241628;
-    --surface-2: #20131f;
-    --surface-3: #2f1f34;
-    --map-ground: #2a1c2f;
-    --bg-4: #3a2840;
-    --line: #35253b;
-    --line-2: #46324d;
-    --line-strong: #6a5272;
-    --text: #f4ebf7;
-    --text-2: #d3c2d8;
-    --text-3: #ab98b1;
-    --text-faint: #85728b;
-    --primary: #ead2f7;
-    --primary-ink: #160b18;
-    --primary-hover: #f3e3fb;
-    --select: #ead2f7;
-    --select-ink: #160b18;
-    --signal: #ead2f7;
-    --signal-bright: #ead2f7;
-    --signal-dim: #9d84a6;
-    --signal-wash: rgba(234, 210, 247, 0.09);
-    --signal-line: rgba(234, 210, 247, 0.34);
-    --mark: #ff7eb3;
-    --mark-wash: rgba(255, 126, 179, 0.1);
+    --field: #262523;
+    --field-2: #302e2b;
+    --surface: #1e1d1b;
+    --surface-2: #1e1d1b;
+    --surface-3: #2a2926;
+    --panel-head: #2a2926;
+    --input: #151413;
+    --map-ground: #2b2a27;
+    --bg-4: #34322e;
+    --line: #2f2e2b;
+    --line-2: #3c3a36;
+    --line-strong: #57544e;
+    --text: #eeece7;
+    --text-2: #c9c6be;
+    --text-3: #a29e95;
+    --text-faint: #77746c;
+    --primary: #d7b4ea;
+    --primary-ink: #1b1a18;
+    --primary-hover: #e4c9f2;
+    --select: #3d2a45;
+    --select-ink: #eeece7;
+    --select-line: #d7b4ea;
+    --signal: #d7b4ea;
+    --signal-bright: #d7b4ea;
+    --signal-dim: #8f7a99;
+    --signal-wash: rgba(215, 180, 234, 0.08);
+    --signal-line: rgba(215, 180, 234, 0.34);
+    --mark: #ff6fa8;
+    --mark-wash: rgba(255, 111, 168, 0.1);
     --alert: #ff8a80;
     --alert-bright: #ff8a80;
     --alert-dim: #7d3a35;
     --alert-wash: rgba(255, 138, 128, 0.1);
-    --subject: #ead2f7;
-    --subject-wash: rgba(234, 210, 247, 0.14);
-    --vantage: #f4ebf7;
-    --ray: rgba(234, 210, 247, 0.5);
-    --shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
-    --shadow-pop: 0 16px 46px rgba(0, 0, 0, 0.5);
+    --subject: #d7b4ea;
+    --subject-wash: rgba(215, 180, 234, 0.14);
+    --vantage: #eeece7;
+    --ray: rgba(235, 225, 240, 0.55);
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    --shadow-pop: 0 14px 40px rgba(0, 0, 0, 0.5);
   }
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --field: #1c1120;
-  --field-2: #2a1a2f;
-  --surface: #241628;
-  --surface-2: #20131f;
-  --surface-3: #2f1f34;
-  --map-ground: #2a1c2f;
-  --bg-4: #3a2840;
-  --line: #35253b;
-  --line-2: #46324d;
-  --line-strong: #6a5272;
-  --text: #f4ebf7;
-  --text-2: #d3c2d8;
-  --text-3: #ab98b1;
-  --text-faint: #85728b;
-  --primary: #ead2f7;
-  --primary-ink: #160b18;
-  --primary-hover: #f3e3fb;
-  --select: #ead2f7;
-  --select-ink: #160b18;
-  --signal: #ead2f7;
-  --signal-bright: #ead2f7;
-  --signal-dim: #9d84a6;
-  --signal-wash: rgba(234, 210, 247, 0.09);
-  --signal-line: rgba(234, 210, 247, 0.34);
-  --mark: #ff7eb3;
-  --mark-wash: rgba(255, 126, 179, 0.1);
+  --field: #262523;
+  --field-2: #302e2b;
+  --surface: #1e1d1b;
+  --surface-2: #1e1d1b;
+  --surface-3: #2a2926;
+  --panel-head: #2a2926;
+  --input: #151413;
+  --map-ground: #2b2a27;
+  --bg-4: #34322e;
+  --line: #2f2e2b;
+  --line-2: #3c3a36;
+  --line-strong: #57544e;
+  --text: #eeece7;
+  --text-2: #c9c6be;
+  --text-3: #a29e95;
+  --text-faint: #77746c;
+  --primary: #d7b4ea;
+  --primary-ink: #1b1a18;
+  --primary-hover: #e4c9f2;
+  --select: #3d2a45;
+  --select-ink: #eeece7;
+  --select-line: #d7b4ea;
+  --signal: #d7b4ea;
+  --signal-bright: #d7b4ea;
+  --signal-dim: #8f7a99;
+  --signal-wash: rgba(215, 180, 234, 0.08);
+  --signal-line: rgba(215, 180, 234, 0.34);
+  --mark: #ff6fa8;
+  --mark-wash: rgba(255, 111, 168, 0.1);
   --alert: #ff8a80;
   --alert-bright: #ff8a80;
   --alert-dim: #7d3a35;
   --alert-wash: rgba(255, 138, 128, 0.1);
-  --subject: #ead2f7;
-  --subject-wash: rgba(234, 210, 247, 0.14);
-  --vantage: #f4ebf7;
-  --ray: rgba(234, 210, 247, 0.5);
-  --shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
-  --shadow-pop: 0 16px 46px rgba(0, 0, 0, 0.5);
+  --subject: #d7b4ea;
+  --subject-wash: rgba(215, 180, 234, 0.14);
+  --vantage: #eeece7;
+  --ray: rgba(235, 225, 240, 0.55);
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 14px 40px rgba(0, 0, 0, 0.5);
 }

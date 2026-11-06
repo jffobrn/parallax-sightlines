@@ -1,4 +1,6 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { MAP_TOOLS_SLOT, ToolIcon } from '../panels/Toolbar'
 import * as maplibregl from 'maplibre-gl'
 import { MapboxOverlay } from '@deck.gl/mapbox'
 import type { Layer } from '@deck.gl/core'
@@ -112,6 +114,8 @@ export function MapView() {
   const [sunSweep, setSunSweep] = useState<number | null>(null)
   const theme = useTheme()
   const ground = groundFor(basemap, theme)
+  const [toolSlot, setToolSlot] = useState<HTMLElement | null>(null)
+  useEffect(() => setToolSlot(document.getElementById(MAP_TOOLS_SLOT)), [])
 
   // Keep the latest data for imperative rebuilds (on map move).
   const dataRef = useRef({ project, selectedSourceId, selectedSyncEventId, hoveredId, resection, ellipse, ground })
@@ -310,6 +314,7 @@ export function MapView() {
     })
     mapRef.current = map
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), 'bottom-left')
     const attribution = new maplibregl.AttributionControl({ compact: true })
     map.addControl(attribution, 'bottom-right')
     attributionRef.current = attribution
@@ -522,42 +527,47 @@ export function MapView() {
   return (
     <>
       <div className="map-fill" ref={containerRef} />
-      <div className="map-strip">
-        <MapSearch onGoto={gotoPoint} />
-        <MapControls
-          basemap={basemap}
-          labels={labels}
-          waybackDate={waybackDate}
-          releases={releases}
-          onChoose={chooseBasemap}
-          onToggleLabels={toggleLabels}
-          onChooseWayback={chooseWayback}
-        />
-        <span className="grow-gap" />
-        <button
-          className="map-chip"
-          aria-pressed={measuring || measurePts.length > 0}
-          onClick={() => (measuring || measurePts.length > 0 ? closeMeasure() : startMeasure())}
-          title="Measure distance and area"
-        >
-          Measure
-        </button>
-        {sunData && (
-          <button
-            className="map-chip"
-            aria-pressed={sunOn}
-            onClick={() => {
-              if (sunOn) {
-                setSunOn(false)
-                setSunSweep(null)
-              } else setSunOn(true)
-            }}
-            title="Sun and shadow at the incident place and time"
-          >
-            Sun
-          </button>
+      {toolSlot &&
+        createPortal(
+          <>
+            <MapControls
+              basemap={basemap}
+              labels={labels}
+              waybackDate={waybackDate}
+              releases={releases}
+              onChoose={chooseBasemap}
+              onToggleLabels={toggleLabels}
+              onChooseWayback={chooseWayback}
+            />
+            <button
+              className="tool"
+              aria-pressed={measuring || measurePts.length > 0}
+              onClick={() => (measuring || measurePts.length > 0 ? closeMeasure() : startMeasure())}
+              title="Measure distance and area"
+            >
+              <ToolIcon name="measure" />
+              Measure
+            </button>
+            <button
+              className="tool"
+              aria-pressed={sunOn}
+              disabled={!sunData}
+              onClick={() => {
+                if (sunOn) {
+                  setSunOn(false)
+                  setSunSweep(null)
+                } else setSunOn(true)
+              }}
+              title={sunData ? 'Sun and shadow at the incident place and time' : 'Give the incident a place and a time first'}
+            >
+              <ToolIcon name="sun" />
+              Sun and shadow
+            </button>
+            <span className="tool-gap" />
+            <MapSearch onGoto={gotoPoint} />
+          </>,
+          toolSlot,
         )}
-      </div>
       <input
         ref={fileInputRef}
         type="file"
@@ -758,17 +768,18 @@ function MapControls({
     <div className="menu-wrap" ref={wrap}>
       <button
         type="button"
-        className="map-chip"
+        className="tool"
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         title="Choose the map ground"
       >
-        Ground: <b style={{ color: 'var(--text)', fontWeight: 600 }}>{current}</b>
+        <ToolIcon name="ground" />
+        Ground: {current}
         {basemap === 'satellite' && waybackDate ? <span className="mono">{waybackDate}</span> : null}
       </button>
       {open && (
-        <div className="menu ground-menu" role="group" aria-label="Map ground">
+        <div className="menu menu-left ground-menu" role="group" aria-label="Map ground">
           {opts.map((o) => (
             <button
               key={o.id}
@@ -848,7 +859,7 @@ function MapSearch({ onGoto }: { onGoto: (lat: number, lng: number) => void }) {
     <div className="map-search">
       <input
         className="map-search-input"
-        placeholder="Search a place or coordinates"
+        placeholder="Find a place or coordinates"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => {

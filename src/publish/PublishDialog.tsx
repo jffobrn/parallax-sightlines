@@ -97,7 +97,7 @@ export function PublishDialog({
                   </button>
                 </div>
                 <p className="faint" style={{ fontSize: 13, marginTop: 10 }}>
-                  One self-contained file: map, chronology, exhibits, findings.
+                  One self-contained file: map, chronology, sources, findings.
                   Hosts anywhere or opens offline.
                 </p>
               </div>

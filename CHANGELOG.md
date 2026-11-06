@@ -7,31 +7,34 @@ Keep a Changelog, and the project follows Semantic Versioning.
 
 ### Changed
 
-- A new visual identity, Colour field, carried over from the agency's own site:
-  a lilac field frames the work, the working surfaces are white, deep violet
-  marks the selection and the one primary action, and raspberry marks what the
-  evidence converges on. Syne is the interface face throughout; IBM Plex Mono
-  is kept for data only (coordinates, times, hashes). Both are vendored, so
-  nothing is fetched. Archivo and Spline Sans Mono are retired.
-- A dark mode, Night field, in the same violet. It follows the system setting;
-  Case, then Appearance, fixes Light or Dark for this browser.
-- Plain language in place of apparatus: no numbered section codes, no tracked
-  capitals, no status pills. Consent and certainty read as words, and a
-  restricted or embargoed source carries a red rule down its row. Consent in
-  the source editor is a choice with each level's meaning beside it. Sources
-  are called sources throughout (no more "exhibits").
-- The top bar holds the case title, the readout, a Case menu (new, open, save,
-  export places, reset to the sample, appearance), Help, and Publish as the
-  only filled button, so New and Reset no longer sit beside Publish. Both ask
-  to confirm in a dialog.
-- The map's controls sit in one strip on its top edge (search, Ground,
-  Measure, Sun), and the crossing readout moved into the rail, so nothing
-  floats over the sightlines. Map marks change colour with the ground, light
-  over imagery and violet over the light grounds.
-- Interface text is 14 px (was 11 to 12 px).
-- On a narrow screen the columns stack, map first.
-- The published artifact takes the same identity, with Syne embedded so the
-  file stays self-contained, and numbers its sources "Source 1" and so on.
+- A new interface, Workbench, laid out like working software: a title bar
+  with Case, View, and Help menus and Publish as the one primary action; a tool
+  bar of the actual tools (Select, Place vantage, Place subject, Place
+  incident, Ground, Measure, Sun and shadow, and the place search); the case as
+  an outline of compact tables (sources with kind, time, and consent; findings
+  with certainty and citations; sync events); a Properties pane laid out as a
+  grid of labelled fields; a tabbed dock (Chronology, Clock, Crossing); and a
+  status bar with the cursor, the crossing, the counts, and how many sources
+  are withheld from publication.
+- Neutral warm greys, Archivo at 13 px, and IBM Plex Mono only for data, both
+  vendored so nothing is fetched. Violet marks the selection; raspberry marks
+  what the evidence converges on; red is kept for protection.
+- A dark mode in the same register, following the system; View, then
+  Appearance, fixes Light or Dark for this browser.
+- Plain language in place of apparatus: no numbered section codes, tracked
+  capitals, or status pills. Consent and certainty read as words; a restricted
+  or embargoed source reads in red with a red rule on its row; consent in the
+  editor is a choice with each level's meaning beside it. Sources are called
+  sources throughout.
+- New and Reset moved into the Case menu and confirm in a dialog.
+- The crossing readout moved off the map into its own dock tab and the status
+  bar, so nothing floats over the sightlines. Map marks change colour with the
+  ground, light over imagery and violet over the light grounds, and the map has
+  a scale bar.
+- On a narrow screen the panes stack, map first.
+- The published artifact is set as a plain working paper in the same
+  register, with Archivo embedded so the file stays self-contained, and numbers
+  its sources "Source 1" and so on.
 
 ## [1.4.0] - 2026-11-05
 

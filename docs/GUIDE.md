@@ -16,7 +16,7 @@ elevation tiles; nothing about your sources or your project rides on any of
 these requests, and the offline Grid and File basemaps fetch nothing at all
 (see [Privacy and data handling](#privacy-and-data-handling)).
 
-![The reconstruction: sources in the rail, vantage rays crossing to a fix on the map, the chronology beneath, and the incident in the inspector](images/01-overview.png)
+![The reconstruction: the case outline, vantage rays crossing to a fix on the map, the chronology beneath, and the incident in the Properties pane](images/01-overview.png)
 
 ---
 
@@ -136,32 +136,44 @@ to the browser automatically; a reload restores it.
 
 ## The interface
 
-The window has three columns and a bar beneath. A left **rail** lists the
-incident, the crossing, the sources, the findings, and the sync events; a
-central **map**; a right **inspector** that edits whatever is selected; and the
-**time** dock along the bottom (the chronology, or the clock alignment).
+Sightlines is laid out like working software.
 
-The top bar carries the case title, a live **readout** (the count of sources,
-how many are public, the count of findings, and the cursor's coordinates), and
-three controls: the **Case** menu (new, open, save, export places, reset to the
-sample, and appearance), **Help** (about, and this guide), and **Publish**, the
-one primary action.
+- The **title bar** carries the menus, the case title, and **Publish**, the one
+  primary action. **Case** holds new, open, save, export places, and reset to
+  the sample; **View** holds the appearance; **Help** holds About and this guide.
+- The **tool bar** holds the tools themselves: **Select**; **Place vantage**,
+  **Place subject**, and **Place incident** (a placement tool waits for a click on
+  the map, and the two source tools need a source selected); the **Ground**
+  control; **Measure**; **Sun and shadow**; and the place search.
+- The **Case** pane on the left is an outline of the investigation: the
+  incident, then the sources, findings, and sync events as compact tables. Each
+  group folds away, and **Add** in the pane's header adds a source, a finding, or
+  a sync event.
+- The **map** is in the centre, with a key and a scale bar.
+- The **Properties** pane on the right edits whatever is selected, as a grid of
+  labelled fields grouped under plain headings.
+- The **dock** along the bottom has three tabs: the **Chronology**, the
+  **Clock** alignment, and the **Crossing**.
+- The **status bar** at the foot reports the cursor's coordinates and elevation,
+  what the crossing currently says, the counts of sources and findings, and how
+  many sources are withheld from publication. Outcomes (saved, imported, reset)
+  appear here too.
 
 **Appearance.** Sightlines opens in a light working mode and switches to a dark
-one when your system does. Case, then Appearance, fixes it to Light or Dark for
+one when your system does. View, then Appearance, fixes it to Light or Dark for
 this browser; the choice is a viewer's preference and is never saved in the
-project. On a narrow screen the columns stack, with the map first.
+project. On a narrow screen the panes stack, with the map first.
 
-- Click the **incident card** at the top of the rail to edit the incident.
+- Click the **incident** at the top of the Case pane to edit it.
 - Click any **source** or **finding** row to select it; the inspector switches to
   its editor, and the map and timeline highlight it.
 - The map key names the marker types: vantage, subject, crossing, incident,
   and a red ring for a point that is protected (not safe to publish).
-- Each row says what it is in words: a source's kind, its time, and who may see
-  it ("Photograph · 2021-03-14 02:12 · Public"). A source that is restricted or
-  embargoed reads so in red, with a red rule down the row's edge.
+- Each source row gives its title, kind, time, and who may see it, in words. A
+  source that is restricted or embargoed reads so in red, with a red rule down
+  the row's edge.
 
-Rows in the rail are keyboard-navigable: tab to a row and press Enter or Space to
+Rows in the Case pane are keyboard-navigable: tab to a row and press Enter or Space to
 select it.
 
 ---
@@ -190,7 +202,7 @@ Selecting the incident card opens its editor in the inspector:
 
 ## Sources
 
-Press **Add source** on the rail's Sources section to add one, then edit it in the
+Choose **Add**, then **Source**, in the Case pane to add one, then edit it in the
 inspector.
 
 ![A source selected: the source editor, with private fields marked as held back, and the source's vantage ray highlighted on the map](images/02-source-editor.png)
@@ -294,7 +306,7 @@ This is the signature move. With two or more vantages placed and aimed, their
 rays are drawn across the map, and where they cross, the tool computes a **fix**:
 a candidate location for the common subject or the incident.
 
-The **Crossing** section, in the rail under the incident, reports:
+The **Crossing** tab in the dock reports (and the status bar summarises):
 
 - **Fix**: the candidate coordinates.
 - **Angle** and **strength**: how squarely the rays cross. Rays meeting near a
@@ -310,7 +322,7 @@ The **Crossing** section, in the rail under the incident, reports:
 
 From there you can **Adopt as incident place** (set the incident's location to
 the fix) or **Set as subject** for the selected source. The language is
-deliberate: the readout calls this a *planar resection at incident scale, a
+deliberate: the Crossing tab calls this a *planar resection at incident scale, a
 defensible candidate, not a verified geolocation*, and that caution travels into
 the published artifact.
 
@@ -320,11 +332,11 @@ the published artifact.
 
 The map carries its own small toolkit, added in 1.3.0.
 
-The map's controls sit in one strip along its top edge, so nothing floats over
-the sightlines: the search box, the **Ground** control, **Measure**, and
-**Sun**. The key sits at the bottom left.
+The map's controls are in the tool bar, so nothing floats over the sightlines:
+the **Ground** control, **Measure**, **Sun and shadow**, and the search box. The
+key and the scale bar sit at the bottom left.
 
-**Basemap.** The **Ground** control opens a short list of grounds: **Satellite** (Esri
+**Basemap.** The **Ground** tool opens a short list of grounds: **Satellite** (Esri
 World Imagery, tokenless, the default), **Streets** (OpenStreetMap), **Topo**
 (Esri topographic with hillshade), **Grid** (the offline forensic graticule;
 nothing is fetched), or **File** (a local `.pmtiles` basemap; nothing is
@@ -344,11 +356,11 @@ Nominatim (OpenStreetMap) geocoder, and picking a result flies the map there.
 
 **Measure.** The Measure button starts a path: click to add points, and a small
 panel gives the running distance in metres; a third point closes the figure
-and adds its area. Undo, Clear, and Done are in the panel; press Measure again to
+and adds its area. Undo, Clear, and Done are in the panel; press the Measure tool again to
 close it. Measurements are a
 reading aid; they are not saved to the project.
 
-**Sun and shadow.** The Sun button opens a solar panel for the incident place
+**Sun and shadow.** The Sun and shadow tool opens a solar panel for the incident place
 and a chosen time: the sun's azimuth and elevation, the shadow direction, and
 the day's rise, noon, and set, computed locally with no network call. Drag the
 time slider and read whether the light in a photograph agrees with the time it
@@ -368,7 +380,7 @@ data is ever part of these requests. Grid and File fetch nothing at all.
 The bottom dock is a linked timeline spanning the incident's window. Dated sources
 sit on one track and findings on another, so the sequence is legible at a glance.
 
-- Hover or select an item to highlight it across the map, rail, and timeline.
+- Hover or select an item to highlight it across the map, the Case pane, and the timeline.
 - **Drag to filter**: drag across the timeline to limit the view to a time range;
   click an empty part to clear the filter. A drag anywhere brushes a range; a
   click on an item selects it.
@@ -387,13 +399,13 @@ anything observable in more than one of them. Where Forensic Architecture
 synchronises video by its shared sounds and sights, this is the same move,
 made explicit and checkable.
 
-Switch the dock from **Chronology** to **Clock** to see the alignment: one track
+Open the dock's **Clock** tab to see the alignment: one track
 per synced source, its media drawn from its synced start, with the start's
 two-sigma band, and each shared event as a line across the tracks it was read in.
 
 ### Sync events and readings
 
-Press **Add event** on the rail's Sync events section. An event has a label, how it
+Choose **Add**, then **Sync event**, in the Case pane. An event has a label, how it
 was observed (seen, heard, or both), and a set of **readings**, one per source:
 
 - **At (in media).** Where the moment falls in that source's media, as seconds or
@@ -468,7 +480,7 @@ withheld vantage. The artifact's disclosure says how many readings were withheld
 
 ## Findings
 
-Press **Add finding** on the rail's Findings section. A finding is the claim the
+Choose **Add**, then **Finding**, in the Case pane. A finding is the claim the
 reconstruction supports, and it must cite its evidence.
 
 ![A finding selected: its statement, certainty, and the sources it cites](images/03-finding.png)
@@ -562,7 +574,7 @@ Both are in the **Case** menu.
   sample, after the same confirmation.
 
 Both confirm in the app itself rather than through a browser dialog, so they
-work in an installed app, and the readout reports the outcome.
+work in an installed app, and the status bar reports the outcome.
 
 ---
 
@@ -587,7 +599,7 @@ work in an installed app, and the readout reports the outcome.
 
 ## Keyboard and accessibility
 
-The rail's source and finding rows are reachable by keyboard: tab to a row and
+The Case pane's source, finding, and sync-event rows are reachable by keyboard: tab to a row and
 press Enter or Space to select it, with a visible focus ring. Text direction is
 detected per string, so right-to-left titles, statements, and notes display
 correctly alongside left-to-right text.

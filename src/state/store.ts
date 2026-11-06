@@ -40,7 +40,9 @@ export interface AppState {
 
   timeBrush: { start: number; end: number } | null
   /** Which view the bottom dock shows: the full chronology or the aligned clock. */
-  dockView: 'chronology' | 'clock'
+  dockView: 'chronology' | 'clock' | 'crossing'
+  /** A short status line for the status bar (save, import, reset outcomes). */
+  notice: string | null
   placing: Placing
   cursor: { lat: number; lng: number } | null
 
@@ -75,7 +77,8 @@ export interface AppState {
   hover: (id: string | null) => void
   setEditingSource: (id: string | null) => void
   setTimeBrush: (range: { start: number; end: number } | null) => void
-  setDockView: (v: 'chronology' | 'clock') => void
+  setDockView: (v: 'chronology' | 'clock' | 'crossing') => void
+  notify: (msg: string) => void
   setCursor: (c: { lat: number; lng: number } | null) => void
 
   // placement ("drop a station")
@@ -118,6 +121,7 @@ export const useStore = create<AppState>()((set, get) => {
     editingSourceId: null,
     timeBrush: null,
     dockView: 'chronology',
+    notice: null,
     placing: null,
     cursor: null,
 
@@ -277,6 +281,12 @@ export const useStore = create<AppState>()((set, get) => {
     },
     setTimeBrush(range) {
       set({ timeBrush: range })
+    },
+    notify(msg) {
+      set({ notice: msg })
+      setTimeout(() => {
+        if (get().notice === msg) set({ notice: null })
+      }, 3500)
     },
     setDockView(v) {
       set({ dockView: v })

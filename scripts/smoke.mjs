@@ -68,7 +68,9 @@ const clickIn = (scope, pattern) =>
     return true
   }, scope, pattern.source)
 const readout = () =>
-  page.evaluate(() => (document.querySelector('.readout')?.textContent || '').replace(/\s+/g, ' ').trim())
+  page.evaluate(() =>
+    ((document.querySelector('.status-right') || document.querySelector('.readout'))?.textContent || '').replace(/\s+/g, ' ').trim(),
+  )
 const strip = (s) => s.replace(/(Reset to the sample|New blank [a-z]+)\.?/i, '').trim().slice(0, 40)
 
 try {
@@ -143,13 +145,19 @@ try {
     await caseAction(/^reset to the sample$/, /^reset to the sample$/)
     await sleep(2500)
     check('Reset restores the sample', strip(await readout()) === strip(r0))
+    // Appearance lives in the View menu where there is one, else in Case.
     const before = pageErrors.length
-    await clickIn('.topbar button', /^case$/)
+    const appearanceMenu = (await page.evaluate(() =>
+      [...document.querySelectorAll('.topbar button')].some((b) => b.textContent.trim() === 'View'),
+    ))
+      ? /^view$/
+      : /^case$/
+    await clickIn('.topbar button', appearanceMenu)
     await sleep(200)
     await clickIn('.menu-item', /^dark$/)
     await sleep(800)
     const dark = await page.evaluate(() => document.documentElement.dataset.theme === 'dark')
-    await clickIn('.topbar button', /^case$/)
+    await clickIn('.topbar button', appearanceMenu)
     await sleep(200)
     await clickIn('.menu-item', /^match the system$/)
     await sleep(500)

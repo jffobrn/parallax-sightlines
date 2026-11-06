@@ -30,7 +30,7 @@ function readPal() {
 }
 type Pal = ReturnType<typeof readPal>
 const MONO = "'Plex Mono', ui-monospace, monospace"
-const SANS = "'Syne', sans-serif"
+const SANS = "'Archivo', sans-serif"
 const M = { top: 30, right: 18, bottom: 24, left: 170 }
 const TRACK_H = 22
 

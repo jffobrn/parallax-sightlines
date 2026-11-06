@@ -30,7 +30,7 @@ type Pal = ReturnType<typeof readPal>
 
 const M = { top: 12, right: 18, bottom: 24, left: 18 }
 const MONO = "'Plex Mono', ui-monospace, monospace"
-const SANS = "'Syne', sans-serif"
+const SANS = "'Archivo', sans-serif"
 
 function itemColor(it: TimelineItem, PAL: Pal): string {
   if (it.kind === 'finding') {
@@ -208,18 +208,6 @@ export function Timeline() {
           />
 
           {/* lane labels */}
-          <text x={0} y={sourcesY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
-            Sources
-          </text>
-          {hasSynced && (
-            <text x={0} y={syncedY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
-              Synced
-            </text>
-          )}
-          <text x={0} y={findingsY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
-            Findings
-          </text>
-
           {/* items */}
           {items.map((it) => {
             const laneY = laneOf(it)
@@ -299,6 +287,21 @@ export function Timeline() {
             )
           })}
 
+          {/* lane names, drawn over the marks with a halo so a mark never hides them */}
+          <g pointerEvents="none">
+          <text x={0} y={sourcesY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
+            Sources
+          </text>
+          {hasSynced && (
+            <text x={0} y={syncedY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
+              Synced
+            </text>
+          )}
+          <text x={0} y={findingsY - laneH / 2 - 4} fill={PAL.label} fontSize={12} fontFamily={SANS} stroke={PAL.halo} strokeWidth={4} paintOrder="stroke">
+            Findings
+          </text>
+
+          </g>
           {/* live brush preview / committed brush */}
           {(() => {
             const band = dragNow ?? (timeBrush ? { a: x(timeBrush.start), b: x(timeBrush.end) } : null)

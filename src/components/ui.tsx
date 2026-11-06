@@ -261,7 +261,16 @@ export interface MenuEntry {
  * A small accessible menu: a button that opens a list of actions. Escape and a
  * click outside close it; arrow keys move between items.
  */
-export function Menu({ label, entries }: { label: string; entries: MenuEntry[] }) {
+export function Menu({
+  label,
+  entries,
+  align = 'right',
+}: {
+  label: string
+  entries: MenuEntry[]
+  /** Which edge of the button the list lines up with. */
+  align?: 'left' | 'right'
+}) {
   const [open, setOpen] = useState(false)
   const wrap = useRef<HTMLDivElement | null>(null)
   const button = useRef<HTMLButtonElement | null>(null)
@@ -296,7 +305,7 @@ export function Menu({ label, entries }: { label: string; entries: MenuEntry[] }
       <button
         ref={button}
         type="button"
-        className="btn"
+        className="menu-btn"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
@@ -304,7 +313,7 @@ export function Menu({ label, entries }: { label: string; entries: MenuEntry[] }
         {label}
       </button>
       {open && (
-        <div className="menu" role="menu" aria-label={label}>
+        <div className={`menu menu-${align}`} role="menu" aria-label={label}>
           {entries.map((e, i) =>
             e.separator ? (
               <div key={i} className="menu-sep" role="separator" />

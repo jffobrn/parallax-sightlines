@@ -81,7 +81,7 @@ export function BearingDial({
             y={c + (r - 16) * Math.sin(a)}
             style={{ fill: cd.t === 'N' ? 'var(--primary)' : 'var(--text-3)', fontWeight: cd.t === 'N' ? 700 : 400 }}
             fontSize={11}
-            fontFamily="'Syne', sans-serif"
+            fontFamily="'Archivo', sans-serif"
             textAnchor="middle"
             dominantBaseline="central"
           >

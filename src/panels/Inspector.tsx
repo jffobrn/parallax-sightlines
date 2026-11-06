@@ -5,6 +5,15 @@ import { FindingEditor } from './FindingEditor'
 import { IncidentEditor } from './IncidentEditor'
 import { SyncEventEditor } from './SyncEventEditor'
 
+function PaneHead({ where }: { where: string }) {
+  return (
+    <div className="pane-head">
+      <span>Properties</span>
+      <span className="faint" style={{ fontWeight: 400 }}>{where}</span>
+    </div>
+  )
+}
+
 export function Inspector() {
   const project = useStore((s) => s.project)
   const selectedSourceId = useStore((s) => s.selectedSourceId)
@@ -25,6 +34,7 @@ export function Inspector() {
   if (syncEvent) {
     return (
       <>
+        <PaneHead where={`Sync event ${project.syncEvents.indexOf(syncEvent) + 1} of ${project.syncEvents.length}`} />
         <div className="inspector-head">
           <div className="kicker">Sync event</div>
           <div className="inspector-title">
@@ -41,6 +51,7 @@ export function Inspector() {
   if (source) {
     return (
       <>
+        <PaneHead where={`Source ${project.sources.indexOf(source) + 1} of ${project.sources.length}`} />
         <div className="inspector-head">
           <div className="kicker">
             <span>Source, {kindLabel(source.kind).toLowerCase()}</span>
@@ -60,9 +71,7 @@ export function Inspector() {
   if (finding) {
     return (
       <>
-        <div className="inspector-head">
-          <div className="kicker">Finding</div>
-        </div>
+        <PaneHead where={`Finding ${project.findings.indexOf(finding) + 1} of ${project.findings.length}`} />
         <div className="scroll-y grow">
           <FindingEditor finding={finding} />
         </div>
@@ -72,10 +81,7 @@ export function Inspector() {
 
   return (
     <>
-      <div className="inspector-head">
-        <div className="kicker">Incident</div>
-        <div className="inspector-title">Editing the incident</div>
-      </div>
+      <PaneHead where="Incident" />
       <div className="scroll-y grow">
         <IncidentEditor />
       </div>

@@ -7,6 +7,8 @@ import { MapView } from './map/MapView'
 import { Timeline } from './timeline/Timeline'
 import { ClockView } from './timeline/ClockView'
 import { timeExtent } from './lib/derive'
+import { StatusBar } from './panels/StatusBar'
+import { CrossingCard } from './map/CrossingCard'
 
 function fmtMs(ms: number): string {
   return new Date(ms).toISOString().slice(0, 16).replace('T', ' ')
@@ -20,39 +22,47 @@ function TimelineHead() {
   const setDockView = useStore((s) => s.setDockView)
   const extent = timeExtent(project)
 
+  const tab = (v: 'chronology' | 'clock' | 'crossing', label: string) => (
+    <button type="button" role="tab" className="dock-tab" aria-selected={dockView === v} onClick={() => setDockView(v)}>
+      {label}
+    </button>
+  )
   return (
-    <div className="timeline-head">
-      <h2 className="sec-title">Time</h2>
-      <div className="seg" role="group" aria-label="dock view">
-        <button type="button" aria-pressed={dockView === 'chronology'} onClick={() => setDockView('chronology')}>
-          Chronology
-        </button>
-        <button type="button" aria-pressed={dockView === 'clock'} onClick={() => setDockView('clock')}>
-          Clock
-        </button>
-      </div>
-      {dockView === 'chronology' && extent && (
-        <span className="faint" style={{ fontSize: 13 }}>
-          <span className="mono">{fmtMs(extent[0])}</span> to <span className="mono">{fmtMs(extent[1])}</span> UTC
-        </span>
-      )}
+    <div className="timeline-head" role="tablist" aria-label="dock view">
+      {tab('chronology', 'Chronology')}
+      {tab('clock', 'Clock')}
+      {tab('crossing', 'Crossing')}
       <div className="topbar-spacer" />
-      {dockView === 'clock' ? (
-        <span className="faint" style={{ fontSize: 13 }}>Sources aligned on shared events</span>
-      ) : timeBrush ? (
-        <button className="btn btn-sm btn-ghost" onClick={() => setTimeBrush(null)}>
-          Clear filter
-        </button>
-      ) : (
-        <span className="faint" style={{ fontSize: 13 }}>Drag across to filter</span>
-      )}
+      <span className="dock-info">
+        {dockView === 'chronology' && extent && (
+          <>
+            <span className="mono">{fmtMs(extent[0])}</span> to <span className="mono">{fmtMs(extent[1])}</span> UTC,{' '}
+            {timeBrush ? (
+              <button className="btn-link" onClick={() => setTimeBrush(null)}>
+                clear the filter
+              </button>
+            ) : (
+              'drag to filter'
+            )}
+          </>
+        )}
+        {dockView === 'clock' && 'Sources aligned on shared events'}
+        {dockView === 'crossing' && 'Where the vantage rays meet'}
+      </span>
     </div>
   )
 }
 
 function DockBody() {
   const dockView = useStore((s) => s.dockView)
-  return dockView === 'clock' ? <ClockView /> : <Timeline />
+  if (dockView === 'clock') return <ClockView />
+  if (dockView === 'crossing')
+    return (
+      <div className="timeline-wrap" style={{ overflowY: 'auto' }}>
+        <CrossingCard />
+      </div>
+    )
+  return <Timeline />
 }
 
 export default function App() {
@@ -88,6 +98,7 @@ export default function App() {
       <div className="inspector">
         <Inspector />
       </div>
+      <StatusBar />
     </div>
   )
 }
