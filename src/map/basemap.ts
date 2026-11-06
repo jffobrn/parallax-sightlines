@@ -18,12 +18,18 @@
  *     graticuleLines) so the coordinate frame follows the view at any zoom.
  */
 
-import maplibregl, {
-  type LayerSpecification,
-  type SourceSpecification,
-  type StyleSpecification,
+import * as maplibregl from 'maplibre-gl'
+import type {
+  LayerSpecification,
+  SourceSpecification,
+  StyleSpecification,
 } from 'maplibre-gl'
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { FileSource, PMTiles, Protocol } from 'pmtiles'
+
+// MapLibre 6 is ESM-only and, under a bundler, cannot find its own worker:
+// point it at the bundled worker module once, before any map is created.
+maplibregl.setWorkerUrl(maplibreWorkerUrl)
 
 export type BasemapSource = 'satellite' | 'streets' | 'topo' | 'graticule' | 'file'
 

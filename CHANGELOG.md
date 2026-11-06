@@ -3,6 +3,38 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.3.2] - 2026-11-05
+
+### Security
+
+- MapLibre GL updated from 4.7 to 6.16, clearing a critical advisory
+  (GHSA-jrc7-96c5-q579, an XSS sanitizer bypass in MapLibre's internal
+  `DOM.sanitize`, affecting every version up to 6.4.0). Exposure here was low,
+  since no tool passes untrusted HTML to MapLibre, but the fix ships anyway.
+  deck.gl 9.4 moves with it.
+
+### Changed
+
+- The deck.gl overlay now draws on its own canvas over the basemap rather
+  than interleaved inside MapLibre's: deck.gl's interleaved path reads MapLibre
+  internals that MapLibre 6 removed, and failed on every frame. These maps are
+  flat, so nothing is lost; overlay alignment and map clicks were re-verified.
+- The MapLibre worker is registered explicitly, as MapLibre 6 requires under a
+  bundler.
+
+### Added
+
+- A smoke test (`npm run smoke`) that drives the built app headless: every
+  stage view, row selection, publish, New, Reset, and reload persistence, and
+  probes the published artifact for the sample's private strings. It runs in
+  the deploy workflow before the Pages upload, so a crashing view or a consent
+  leak blocks the deploy.
+
+### Fixed
+
+- Recorded here: the map credit now refreshes when the ground changes
+  (shipped 2026-09-04 without a version entry).
+
 ## [1.3.1] - 2026-09-04
 
 ### Fixed

@@ -1,5 +1,5 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import { MapboxOverlay } from '@deck.gl/mapbox'
 import type { Layer } from '@deck.gl/core'
 import { PathLayer, PolygonLayer, ScatterplotLayer } from '@deck.gl/layers'
@@ -305,7 +305,10 @@ export function MapView() {
     map.addControl(attribution, 'bottom-right')
     attributionRef.current = attribution
 
-    const overlay = new MapboxOverlay({ interleaved: true, layers: [] })
+    // Overlaid, not interleaved: deck.gl's interleaved path reads MapLibre
+    // internals that MapLibre 6 removed. These maps are flat, so drawing deck
+    // on its own canvas over the basemap loses nothing.
+    const overlay = new MapboxOverlay({ interleaved: false, layers: [] })
     overlayRef.current = overlay
     map.addControl(overlay)
 

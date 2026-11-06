@@ -35,6 +35,16 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Smoke test (views, publish, consent boundary)
+        # Blocks the deploy if a view crashes or a published artifact carries
+        # any of the sample's private strings.
+        run: |
+          python3 -m http.server 8099 -d dist >/dev/null 2>&1 &
+          sleep 2
+          npm run smoke -- http://localhost:8099/
+        env:
+          CHROME: /usr/bin/google-chrome
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
