@@ -40,8 +40,8 @@ export interface MapPalette {
 }
 
 const DARK: MapPalette = {
-  minor: [86, 64, 94, 120],
-  major: [122, 96, 132, 170],
+  minor: [70, 68, 63, 140],
+  major: [100, 97, 90, 190],
   subject: [234, 210, 247, 255],
   subjectLine: [22, 11, 24, 255],
   vantage: [255, 255, 255, 255],
@@ -70,8 +70,8 @@ const DARK: MapPalette = {
 }
 
 const LIGHT: MapPalette = {
-  minor: [214, 191, 226, 150],
-  major: [185, 150, 204, 210],
+  minor: [214, 211, 203, 170],
+  major: [184, 180, 170, 220],
   subject: [90, 22, 102, 255],
   subjectLine: [255, 255, 255, 255],
   vantage: [255, 255, 255, 255],
@@ -112,4 +112,4 @@ export function groundFor(basemap: string, theme: 'light' | 'dark'): Ground {
 }
 
 /** The grid ground's background, per theme. */
-export const GRID_BG = { light: '#f3ebf6', dark: '#2a1c2f' } as const
+export const GRID_BG = { light: '#e8e6e0', dark: '#2b2a27' } as const

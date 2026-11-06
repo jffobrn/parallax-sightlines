@@ -3,6 +3,25 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.5.1] - 2026-11-05
+
+### Changed
+
+- The crossing now reads as evidence rather than as a starburst. The fix is
+  the centre of the uncertainty estimate, which weighs every ray, not the
+  single best-crossing pair. Rays stop a little past the fix, so they are seen
+  to converge on it; the pairwise crossings are drawn as a small cluster around
+  it; a camera's field of view is drawn only for the source in focus; and a
+  sync event's bearing bands and zone of possible origin are drawn only when
+  that event is selected.
+- Geometry is reported in words (strong, moderate, weak) with the best pair's
+  crossing angle, and the spread names how many pairwise crossings it spans.
+- The sample's bearings now carry realistic reading error, so its spread and
+  its 95% region tell one consistent story. The sample opens on the measured
+  grid, since its invented coordinates have no imagery under them.
+- The grid ground uses the Workbench greys, and the page declares both light
+  and dark colour schemes.
+
 ## [1.5.0] - 2026-11-05
 
 ### Changed

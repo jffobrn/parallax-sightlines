@@ -94,7 +94,7 @@ const LABELS_TILES: RasterDef = {
   maxzoom: 19,
 }
 
-export const BG_COLOR = '#f3ebf6'
+export const BG_COLOR = '#e8e6e0'
 
 /** A dated release of the Esri Wayback World Imagery archive. */
 export interface WaybackRelease {

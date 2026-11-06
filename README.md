@@ -74,7 +74,7 @@ artifact that hosts free.
 - A custom visx timeline, brushed and linked to the map
 - Dexie / IndexedDB for the project, with media held as Blobs
 - WebCrypto `crypto.subtle.digest` for sha-256 fixity
-- Self-hosted IBM Plex Sans, IBM Plex Mono, and Noto Naskh Arabic (no font CDN)
+- Self-hosted Archivo, IBM Plex Mono, and Noto Naskh Arabic (no font CDN)
 
 ## Safety properties
 

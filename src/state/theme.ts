@@ -1,5 +1,5 @@
 /**
- * Appearance: light (Colour field), dark (Night field), or the system setting.
+ * Appearance: light, dark, or the system setting.
  * The choice is a per-viewer convenience kept in this browser's storage; it is
  * never part of the project. An explicit choice sets data-theme on the root;
  * System removes it and lets the media query decide.

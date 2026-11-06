@@ -1,7 +1,7 @@
 import { formatLatLng } from '../core'
 import { useStore } from '../state/store'
 import { useCursorElevation } from '../state/useCursorElevation'
-import { useCrossing } from '../map/CrossingCard'
+import { geometryWord, useCrossing } from '../map/CrossingCard'
 import { Count } from '../components/ui'
 
 /**
@@ -30,7 +30,7 @@ export function StatusBar() {
       {vantages >= 2 && (
         <span>
           {best
-            ? `Crossing: ${vantages} vantages, ${Math.round(best.crossingAngleDeg)}°${best.weak ? ', weak geometry' : ''}${
+            ? `Crossing: ${vantages} vantages, ${geometryWord(best.crossingAngleDeg, best.weak).toLowerCase()} geometry${
                 resection.points.length > 1 ? `, spread ${resection.spreadM.toFixed(0)} m` : ''
               }`
             : 'Crossing: rays do not meet ahead of the cameras'}

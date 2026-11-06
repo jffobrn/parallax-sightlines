@@ -48,10 +48,17 @@ import {
 const BASEMAP_KEY = 'sightlines.basemap'
 const LABELS_KEY = 'sightlines.labels'
 
-/** Persisted default. 'file' is a per-session choice and is never persisted. */
+/**
+ * Persisted default. 'file' is a per-session choice and is never persisted.
+ * The fictional sample sits at invented coordinates with no imagery under
+ * them, so with no stored choice it opens on the measured grid instead of on
+ * blank tiles.
+ */
 function loadBasemapPref(): BasemapSource {
   const v = typeof localStorage !== 'undefined' ? localStorage.getItem(BASEMAP_KEY) : null
-  return v === 'streets' || v === 'topo' || v === 'graticule' ? v : 'satellite'
+  if (v === 'streets' || v === 'topo' || v === 'graticule' || v === 'satellite') return v
+  const sample = useStore.getState().project.incident.tags?.includes('fictional-sample')
+  return sample ? 'graticule' : 'satellite'
 }
 
 function loadLabelsPref(): boolean {
@@ -181,6 +188,7 @@ export function MapView() {
       selectedSyncEventId: d.selectedSyncEventId,
       hoveredId: d.hoveredId,
       resection: d.resection,
+      fix: d.ellipse ? { lng: d.ellipse.center[0], lat: d.ellipse.center[1] } : null,
       ground: d.ground,
       graticule: graticuleLines(bounds),
       onPickSource: (id) => useStore.getState().select(id),

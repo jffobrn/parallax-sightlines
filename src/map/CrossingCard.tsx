@@ -26,6 +26,12 @@ export function useCrossing(): { resection: ResectionSet; ellipse: UncertaintyEl
   return { resection, ellipse }
 }
 
+/** How squarely the rays cross, in words rather than a percentage. */
+export function geometryWord(angleDeg: number, weak: boolean): string {
+  if (weak || angleDeg < 25) return 'Weak'
+  return angleDeg >= 60 ? 'Strong' : 'Moderate'
+}
+
 /** Round an adopted crossing to ~0.1 m so it does not carry float noise. */
 const round6 = (n: number) => Math.round(n * 1e6) / 1e6
 
@@ -47,7 +53,9 @@ export function CrossingCard() {
   if (vantageCount < 2) return null
 
   const best = resection.best
-  const point = best?.point
+  // The fix is the centre of the uncertainty estimate, which weighs every ray;
+  // without one, the best-crossing pair stands in.
+  const point = ellipse ? { lng: ellipse.center[0], lat: ellipse.center[1] } : best?.point
 
   const adoptAsPlace = () => {
     if (!point) return
@@ -87,15 +95,20 @@ export function CrossingCard() {
           <dl className="kv">
             <dt>Fix</dt>
             <dd className="mono">{formatLatLng(point.lat, point.lng)}</dd>
-            <dt>Angle</dt>
+            <dt>Geometry</dt>
             <dd>
-              <span className="mono">{best.crossingAngleDeg.toFixed(0)}&deg;</span>{' '}
-              <span className="faint">({Math.round(best.quality * 100)}% strength)</span>
+              {geometryWord(best.crossingAngleDeg, best.weak)}{' '}
+              <span className="faint">
+                (best pair crosses at <span className="mono">{best.crossingAngleDeg.toFixed(0)}&deg;</span>)
+              </span>
             </dd>
             {resection.points.length > 1 && (
               <>
                 <dt>Spread</dt>
-                <dd className="mono">{resection.spreadM.toFixed(0)} m</dd>
+                <dd>
+                  <span className="mono">{resection.spreadM.toFixed(0)} m</span>{' '}
+                  <span className="faint">across {resection.points.length} pairwise crossings</span>
+                </dd>
               </>
             )}
             {ellipse && (

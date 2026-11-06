@@ -8,6 +8,7 @@ import type { Layer } from '@deck.gl/core'
 import { LineLayer, PathLayer, PolygonLayer, ScatterplotLayer } from '@deck.gl/layers'
 import {
   destinationPoint,
+  distanceM,
   fovConeRing,
   type Project,
   type ResectionSet,
@@ -28,6 +29,8 @@ export interface BuildLayersArgs {
   hoveredId: string | null
   resection: ResectionSet
   graticule: Graticule
+  /** The fix to mark: the centre of the uncertainty estimate, when there is one. */
+  fix?: { lat: number; lng: number } | null
   /** Whether the ground under the marks is dark (imagery) or light. */
   ground?: Ground
   /** The sync event in focus: its bearing bands and zone are emphasised. */
@@ -44,6 +47,7 @@ interface PointDatum {
 
 export function buildMapLayers(args: BuildLayersArgs): Layer[] {
   const { project, selectedSourceId, hoveredId, resection, graticule } = args
+  const fix = args.fix ?? resection.best?.point ?? null
   const C = mapPalette(args.ground ?? 'dark')
   const isEmph = (id: string) => id === selectedSourceId || id === hoveredId
 
@@ -61,7 +65,11 @@ export function buildMapLayers(args: BuildLayersArgs): Layer[] {
     if (s.vantage) {
       const v = s.vantage
       const origin = { lat: v.lat, lng: v.lng }
-      const end = destinationPoint(origin, v.bearingDeg, RAY_LEN_M)
+      // A ray stops a little past the fix, so the rays are seen to converge on
+      // it rather than radiate from it.
+      const reach = fix ? distanceM(origin, fix) : null
+      const len = reach !== null && reach > 5 ? Math.min(RAY_LEN_M, reach * 1.12 + 25) : RAY_LEN_M
+      const end = destinationPoint(origin, v.bearingDeg, len)
       const emph = isEmph(s.id)
       rays.push({
         source: [v.lng, v.lat],
@@ -73,7 +81,9 @@ export function buildMapLayers(args: BuildLayersArgs): Layer[] {
         { lat: v.lat, lng: v.lng, bearingDeg: v.bearingDeg, fovDeg: v.fovDeg },
         CONE_LEN_M,
       )
-      if (ring) cones.push({ polygon: ring, color: emph ? C.coneSel : C.cone })
+      // The field of view is drawn only for the source in focus; five cones at
+      // once hide the sightlines they are meant to explain.
+      if (ring && emph) cones.push({ polygon: ring, color: C.coneSel })
       vantagePts.push({
         position: [v.lng, v.lat],
         sourceId: s.id,
@@ -139,7 +149,9 @@ export function buildMapLayers(args: BuildLayersArgs): Layer[] {
   // Bearing bands from sync readings, and the zone of possible origin where
   // they meet. The bands are faint; the zone, the bounded region the origin
   // must lie in, is outlined.
-  const wedges = eventWedges(project)
+  // Only the sync event in focus: its bands and zone are a separate
+  // construct from the crossing and must not sit on it unasked.
+  const wedges = eventWedges(project).filter((w) => w.eventId === args.selectedSyncEventId)
   if (wedges.length) {
     layers.push(
       new PolygonLayer({
@@ -157,7 +169,7 @@ export function buildMapLayers(args: BuildLayersArgs): Layer[] {
       }),
     )
   }
-  const zones = originZones(project).filter((z) => !z.empty && z.wedges > 1)
+  const zones = originZones(project).filter((z) => !z.empty && z.wedges > 1 && z.eventId === args.selectedSyncEventId)
   if (zones.length) {
     layers.push(
       new PolygonLayer({
@@ -298,17 +310,21 @@ export function buildMapLayers(args: BuildLayersArgs): Layer[] {
         id: 'crossings',
         data: resection.points.map((p) => ({ position: [p.lng, p.lat] })),
         getPosition: (d: { position: [number, number] }) => d.position,
-        getRadius: 4,
+        getRadius: 3,
         radiusUnits: 'pixels',
         filled: true,
         getFillColor: C.crossRing,
+        stroked: true,
+        getLineColor: C.cross,
+        getLineWidth: 1,
+        lineWidthUnits: 'pixels',
         parameters: { depthTest: false },
         pickable: false,
       }),
     )
   }
-  if (resection.best?.point) {
-    const bp = resection.best.point
+  if (fix) {
+    const bp = fix
     layers.push(
       new ScatterplotLayer({
         id: 'crossing-best-ring',
@@ -333,8 +349,8 @@ export function buildMapLayers(args: BuildLayersArgs): Layer[] {
         filled: true,
         getFillColor: C.cross,
         stroked: true,
-        getLineColor: [10, 12, 16, 255],
-        getLineWidth: 1,
+        getLineColor: C.vantageLine,
+        getLineWidth: 1.5,
         lineWidthUnits: 'pixels',
         parameters: { depthTest: false },
         pickable: false,
