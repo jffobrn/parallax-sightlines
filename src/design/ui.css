@@ -404,6 +404,15 @@ tr.row[data-withheld='true'] td:first-child {
   border-color: var(--line-2);
   color: var(--text);
 }
+/* A quiet destructive action still reads as destructive. */
+.btn-ghost.btn-danger {
+  color: var(--alert);
+}
+.btn-ghost.btn-danger:hover {
+  background: var(--alert-wash);
+  border-color: var(--alert-dim);
+  color: var(--alert);
+}
 .btn-sm {
   height: 24px;
   padding: 0 8px;

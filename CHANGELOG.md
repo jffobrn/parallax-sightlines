@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 Keep a Changelog, and the project follows Semantic Versioning.
 
+## [1.5.2] - 2026-11-06
+
+### Fixed
+
+- Quiet destructive buttons (Delete, Remove) read in the alert colour again;
+  the quiet button style had been overriding it.
+
 ## [1.5.1] - 2026-11-05
 
 ### Changed
